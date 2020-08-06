@@ -1,0 +1,70 @@
+<apex:page controller="PricePDFController" standardStylesheets="false" applyBodyTag="false" renderAs="PDF" action="{!deleteDocument}">
+    <head>
+        <title>PDF - Simulação</title>
+        <apex:stylesheet value="{!$Resource.OpportunityPDFStyle}" />
+    </head>
+    <body>
+        <div id="main_div">
+            <table id="header">
+                <tr>
+                    <td style="width: 15%;">
+                        <div>
+                            <apex:image url="{!$Resource.stoller_logo}" width="150px" height="100px">
+                                
+                            </apex:image>
+                        </div>
+                    </td>
+                    <td style="width: 20%;">
+                        <p>
+                            Stoller do Brasil LTDA<br/>
+                            <br/>
+                            Matriz/Fábrica<br/>
+                            Rod SP 332, s/n, KM 138 - C. Postal 55<br/>
+                            Cosmópolis/SP - CEP 13150-030<br/>
+                            Telefone: 55 (19) 3872-8288 / Fax 55 (19) 3872-1200<br/>
+                            www.stoller.com.br | info@stoller.com.br
+                        </p>
+                    </td>
+                    <td>
+                        <p>
+                        <br/>
+                        <br/>
+                        Escritório<br/>
+                        Avenida Carlos Grimaldi, 1701 - Torre II - 3º Andar<br/>
+                        Campinas/SP - CEP 13091-908<br/>
+                        Telefone: 55 (19) 3707-1200 / Fax 55 (19) 3707-1201<br/>
+
+                        </p>
+                    </td>
+                </tr>
+            </table>
+            
+            <table id="oppportunity_line_items_table" style="page-break-inside: auto;">
+                <tr style="background-color: #b0adab;">
+                    <th width="8%">SKU</th>
+                    <th width="14%">Descrição</th>
+                    <th width="5%">Litros</th>
+                    <th width="11%">Valor do Produto</th>
+                </tr>
+                <apex:repeat value="{!items}" var="item">
+                    <tr>
+                        <td>
+                            {!item.sku}
+                        </td>
+                        <td>
+                            {!item.name}
+                        </td>
+                        <td>
+                            {!item.liter}L
+                        </td>
+                        <td class="td-break-all" style="{!IF(item.priceListFontSizeSmaller, 'font-size:10px;', '')}">
+                            {!IF(isDollar, 'US$', 'R$')} {!item.priceList}
+                        </td>
+                    </tr>
+                </apex:repeat>
+            </table>
+           
+          
+        </div>
+    </body>
+</apex:page>

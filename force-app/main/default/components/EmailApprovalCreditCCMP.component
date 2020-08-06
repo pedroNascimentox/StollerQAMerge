@@ -1,0 +1,117 @@
+<apex:component controller="EmailApprovalCreditController" access="global">
+    <apex:attribute name="opps" type="Opportunity" description="" required="required" assignTo="{!del}" />
+    <!-- <apex:attribute name="deliveryRecord" type="String" description="" assignTo="{!nnumber}" /> -->
+    <apex:attribute name="userRecord" type="User" description="" required="required" assignTo="{!u}" />
+    <apex:attribute name="status" type="String" description="" default="" />
+    <apex:attribute name="showStatus" type="Boolean" description="" default="false" />
+
+    <p style="font-size:16px;margin:0px 0px 15px 0px;display:block">Prezado(a)
+        <strong>{!userRecord.Name}</strong>,</p>
+    <div style="{!IF(!showStatus, 'display:block;', 'display:none;')}">
+        <p style="font-size:16px;margin:0px 0px 15px 0px;{!IF(!showStatus, 'display:block;', 'display:none;')}">
+            <apex:outputText rendered="{!!showStatus}">Segue o processo de liberação de crédito para sua aprovação.</apex:outputText>
+        </p>
+    </div>
+    <div style="{!IF(showStatus, 'display:block;', 'display:none;')}">
+        <p style="font-size:16px;margin:0px 0px 15px 0px;{!IF(showStatus, 'display:block;', 'display:none;')}">
+            <apex:outputText rendered="{!showStatus}">O processo de Aprovação de Credito da Oportunidade  nº
+                <strong>{!opps.Name}</strong> foi Reprovado
+                </apex:outputText>
+                </p>
+    </div>
+    <p style="font-size:16px;margin:0px 0px 10px 0px;display:block">
+        <strong>Cliente: </strong>{!opps.Account.Name}
+    </p>
+    <p style="font-size:16px;margin:0px 0px 10px 0px;display:block">
+        <strong>Cód Cliente: </strong>{!opps.Account.ExternalID__c}
+    </p>
+    <p style="font-size:16px;margin:0px 0px 10px 0px;display:block">
+        <strong>RTV: </strong>{!opps.NomeRTV__c}
+    </p>
+    <p style="font-size:16px;margin:0px 0px 10px 0px;display:block">
+        <strong>Regional: </strong>{!opps.RegionalNome__c}
+    </p>
+    <p style="font-size:16px;margin:0px 0px 10px 0px;display:block">
+        <strong>Nr. da Oportunidade: </strong>{!opps.Name}
+    </p>
+    <p style="font-size:16px;margin:0px 0px 10px 0px;display:block">
+        <strong>Nr. Da programação: </strong>
+        <apex:repeat value="{!numberList}" var="item" id="theRepeatString">
+            {!item}
+        </apex:repeat>
+    </p>
+    <p style="font-size:16px;margin:0px 0px 15px 0px;display:block">
+        <strong>Moeda: </strong>{!opps.Moeda__c}
+    </p>
+    <p style="font-size:16px;margin:0px 0px 15px 0px;display:block">
+        <strong>Saldo Crédito Disponível: </strong>{!oppAccountCredit}
+    </p>
+
+    <table>
+        <tr>
+            <th style="border-width: 1px;padding: 6px 12px;border-style: solid;border-color: #000000;background-color: #F2F2F2;text-align:
+            center;margin: auto;">Produto</th>
+            <th style="border-width: 1px;padding: 6px 12px;border-style: solid;border-color: #000000;background-color: #F2F2F2;text-align:
+            center;margin: auto;">Emb</th>
+            <th style="border-width: 1px;padding: 6px 12px;border-style: solid;border-color: #000000;background-color: #F2F2F2;text-align:
+            center;margin: auto;">Qde</th>
+            <th style="border-width: 1px;padding: 6px 12px;border-style: solid;border-color: #000000;background-color: #F2F2F2;text-align:
+            center;margin: auto;">Preço de Venda</th>
+            <th style="border-width: 1px;padding: 6px 12px;border-style: solid;border-color: #000000;background-color: #F2F2F2;text-align:
+            center;margin: auto;">Valor total</th>
+            <th style="border-width: 1px;padding: 6px 12px;border-style: solid;border-color: #000000;background-color: #F2F2F2;text-align:
+            center;margin: auto;">Data Entrega</th>
+            <th style="border-width: 1px;padding: 6px 12px;border-style: solid;border-color: #000000;background-color: #F2F2F2;text-align:
+            center;margin: auto;">Data faturamento</th>
+        </tr>
+        <apex:repeat value="{!lineItemList}" var="item" id="theRepeat">
+            <tr>
+                <td style="border-width: 1px;padding: 6px 12px;border-style: solid;border-color: #000000;background-color: #F2F2F2;text-align:
+                center;margin: auto;">
+                    {!item.ProductName}
+                </td>
+                <td style="border-width: 1px;padding: 6px 12px;border-style: solid;border-color: #000000;background-color: #F2F2F2;text-align:
+                center;margin: auto;">
+                    {!item.Packing}
+                </td>
+                <td style="border-width: 1px;padding: 6px 12px;border-style: solid;border-color: #000000;background-color: #F2F2F2;text-align:
+                center;margin: auto;">
+                    {!item.Quantity}
+                </td>
+                <td style="border-width: 1px;padding: 6px 12px;border-style: solid;border-color: #000000;background-color: #F2F2F2;text-align:
+                center;margin: auto;">
+                    <apex:outputText rendered="{!opps.Moeda__c == 'BRL'}" style="font-size: 14px" value="R$ {!item.PrecoVendasJurosBRLUSD}"
+                    />
+                    <apex:outputText rendered="{!opps.Moeda__c == 'USD'}" style="font-size: 14px" value="US$ {!item.PrecoVendasJurosBRLUSD}"
+                    />
+                </td>
+                <td style="border-width: 1px;padding: 6px 12px;border-style: solid;border-color: #000000;background-color: #F2F2F2;text-align:
+                center;margin: auto;">
+                    <apex:outputText rendered="{!opps.Moeda__c == 'BRL'}" style="font-size: 14px" value="R$ {!item.TotalValue}"
+                    />
+                    <apex:outputText rendered="{!opps.Moeda__c == 'USD'}" style="font-size: 14px" value="US$ {!item.TotalValue}"
+                    />
+                </td>
+                <td style="border-width: 1px;padding: 6px 12px;border-style: solid;border-color: #000000;background-color: #F2F2F2;text-align:
+                center;margin: auto;">
+                    <apex:outputText value="{0, date, dd/MM/yyyy}"><apex:param value="{!item.deliveryDate}" /></apex:outputText>
+                </td>
+                <td style="border-width: 1px;padding: 6px 12px;border-style: solid;border-color: #000000;background-color: #F2F2F2;text-align:
+                center;margin: auto;">                
+                    <apex:outputText value="{0, date, dd/MM/yyyy}"><apex:param value="{!item.fatDate}" /></apex:outputText>
+                </td>
+            </tr>
+        </apex:repeat>
+    </table>
+
+    <p style="font-size:16px;margin:10px 0px 10px 0px;display:block">
+        <strong>Valor total: </strong>{!sumValues}
+    </p>
+    <p style="font-size:16px;margin:0px 0px 10px 0px;{!IF(opps.ObservacaoInterna__c != null, 'display:block;', 'display:none;')}">
+        <strong>Observações: </strong>{!opps.ObservacaoInterna__c}
+    </p>
+    <br/>
+    <apex:outputLink rendered="{!approval != null && status != 'Aprovado' && status != 'Reprovado'}" style="font-size: 16px;margin:0px 0px 10px 0px;display:block;"
+        value="{!approval}">Link da Aprovação</apex:outputLink>
+
+</apex:component>

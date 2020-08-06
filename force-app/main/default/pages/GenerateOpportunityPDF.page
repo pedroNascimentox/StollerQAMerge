@@ -1,0 +1,102 @@
+<apex:page standardController="Opportunity" lightningStylesheets="true" extensions="GenerateOpportunityPDFController">
+    <html>
+        <head>
+            <title>Opportunity PDF</title>
+            <apex:includeScript value="/canvas/sdk/js/36.0/publisher.js"></apex:includeScript>
+            <!-- <apex:stylesheet value="{!URLFOR($Resource.slds, 'styles/salesforce-lightning-design-system.min.css')}" /> -->
+            <script type="text/javascript">
+
+                window.onload = function() {
+                    NE_GeneratePDF.generateAttachment();
+                    window.isSF1 = {!isSF1};
+                }
+
+                function NE_GeneratePDF (){
+
+                    this.generateAttachment = function(){
+                        debugger;
+                        NE_GeneratePDF.showLoading(true);
+                        Visualforce.remoting.Manager.invokeAction(
+                            '{!$RemoteAction.GenerateOpportunityPDFController.generateAttachment}',
+                                '{!Opportunity.Id}',
+                                function (result, event) {
+                                    if(event.status){
+                                        if(result.hasError == true){
+                                            document.getElementById("error_message").style.display = "block";
+                                            document.getElementById("error_message").innerHTML = `<p>${result.errorMessage}<p/>`;
+                                        } else {
+                                            sforce.one.navigateToURL('/apex/OpportunityApp?id={!Opportunity.Id}');
+                                            if(isSF1){
+                                                sforce.one.navigateToSObject(result.recordId);
+                                            } else {
+                                                window.open('/apex/OpportunityPDF?Id={!Opportunity.Id}');
+                                            }
+                                            Sfdc.canvas.publisher.publish({name : 'publisher.close'});
+                                        }
+                                    }
+                                    else if(event.type === 'exception'){
+                                        document.getElementById("error_message").style.display = "block";
+                                        document.getElementById("error_message").innerHTML = `<p>${event.message}<p/>`;
+                                    }
+                                    NE_GeneratePDF.showLoading(false);
+                                    
+                                }, { escape: false, timeout: 120000 }
+                        );
+                    }
+
+                    this.showLoading = function (showLoading) {
+                        var loadingDiv = document.getElementById("main_load");
+                        if (showLoading) {
+                            loadingDiv.style.display = "table";
+                        } else {
+                            loadingDiv.style.display = "none";
+                        }
+                    }
+                }
+
+                NE_GeneratePDF.instance = null;
+
+                NE_GeneratePDF.getInstance = function() {
+                    if (NE_GeneratePDF.instance == null)
+                        NE_GeneratePDF.instance = new NE_GeneratePDF();
+
+                    return NE_GeneratePDF.instance;
+                }
+
+                NE_GeneratePDF.generateAttachment = function() {
+                    NE_GeneratePDF.getInstance().generateAttachment();
+                }
+
+                NE_GeneratePDF.showLoading = function (show) {
+                    NE_GeneratePDF.getInstance().showLoading(show);
+                }
+
+            </script>
+        </head>
+        <body>
+            <div id="error_message" style="display:none" class="slds-box slds-theme--error"></div>
+            <table id="main_load" class="tb_load" cellspacing="0px" cellpadding="0px">
+                <tr>
+                    <td align="center" valign="middle">
+                        <div class="box_load">
+                            <div class="sk-fading-circle">
+                                <div class="sk-circle1 sk-circle"></div>
+                                <div class="sk-circle2 sk-circle"></div>
+                                <div class="sk-circle3 sk-circle"></div>
+                                <div class="sk-circle4 sk-circle"></div>
+                                <div class="sk-circle5 sk-circle"></div>
+                                <div class="sk-circle6 sk-circle"></div>
+                                <div class="sk-circle7 sk-circle"></div>
+                                <div class="sk-circle8 sk-circle"></div>
+                                <div class="sk-circle9 sk-circle"></div>
+                                <div class="sk-circle10 sk-circle"></div>
+                                <div class="sk-circle11 sk-circle"></div>
+                                <div class="sk-circle12 sk-circle"></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </body>
+    </html>
+</apex:page>

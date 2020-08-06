@@ -1,0 +1,13 @@
+<apex:page controller="ApprovalClientController">
+    <apex:form id="form">
+        <apex:messages />
+        <apex:actionFunction name="ValidaAprovacao" reRender="form" action="{!ValidaAprovacao}" status="myStatus" />
+    </apex:form>
+
+    <script>
+        window.onload = function () {
+            ValidaAprovacao(); 
+        }
+    </script>
+
+</apex:page>

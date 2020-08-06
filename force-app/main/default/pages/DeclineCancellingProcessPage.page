@@ -1,0 +1,122 @@
+<apex:page standardController="SolicitacaoCancelamento__c" extensions="sendDeliveryChangeController">
+    <apex:slds />
+    <script type='text/javascript' src='/canvas/sdk/js/publisher.js'></script>
+    <apex:includeScript value="/canvas/sdk/js/36.0/publisher.js"></apex:includeScript>
+    <div id="divError" class="slds-notify slds-notify_alert slds-theme_alert-texture slds-theme_error" role="alert" style="display:none">
+        <span class="slds-assistive-text">Warning</span>
+        <span id="spanError" class="slds-icon_container slds-icon-utility-user slds-m-right_x-small">
+            <svg class="slds-icon slds-icon_x-small" aria-hidden="true">
+                <use xmlns:xlink="/assets/icons/utility-sprite/svg/symbols.svg#user"></use>
+            </svg>
+        </span>
+        <h2 id="errorMsg"></h2>
+    </div>
+    <div class="slds-form-element">
+        <label class="slds-form-element__label" for="textarea-id-01">Comentário</label>
+        <div class="slds-form-element__control">
+            <textarea id="commentsInput" class="slds-textarea" placeholder="Digite um comentário..."></textarea>
+        </div>
+    </div>
+    <div id="main_load" class="demo-only demo-only demo-only_viewport" style="height:6rem; display: none; background: rgba(176, 196, 223, 0.5); position: absolute; top: 0; left: 0; height: 100%; width: 100%;">
+        <div role="status" class="slds-spinner slds-spinner_medium">
+            <span class="slds-assistive-text">Loading</span>
+            <div class="slds-spinner__dot-a"></div>
+            <div class="slds-spinner__dot-b"></div>
+        </div>
+    </div>
+    <script type="text/javascript">
+        window.onload = function () {
+            debugger;
+            Sfdc.canvas.publisher.publish({ name: "publisher.setValidForSubmit", payload: "true" });
+            Sfdc.canvas.publisher.subscribe({
+                name: "publisher.post",
+                onData: function (e) {
+                    NE_ApproveProcess.approveProcess();
+                }
+            });
+        }
+        function NE_ApproveProcess() {
+
+            this.approveProcess = function () {
+                debugger; 
+                NE_ApproveProcess.hideError();
+                NE_ApproveProcess.showLoading(true);
+                var comments = document.getElementById('commentsInput').value;
+                Visualforce.remoting.Manager.invokeAction(
+                    '{!$RemoteAction.sendDeliveryChangeController.rejectedProcessPage}',
+                    '{!SolicitacaoCancelamento__c.Id}',
+                    (comments ? comments : ''),
+                    function (result, event) {
+                        if (event.status) {
+                            if (result.hasError) {
+                                NE_ApproveProcess.showError(result.errorMessage);
+                            } else {
+                                NE_ApproveProcess.showSuccess(result.errorMessage);
+                                Sfdc.canvas.publisher.publish({ name: "publisher.close", payload: { refresh: "true" } });
+                            }
+                        }
+                        else if (event.type === 'exception') {
+                            NE_ApproveProcess.showError(event.message);
+                        }
+                        NE_ApproveProcess.showLoading(false);
+
+                    }, { escape: false, timeout: 120000 }
+                );
+            }
+
+            this.showLoading = function (showLoading) {
+                var loadingDiv = document.getElementById("main_load");
+                if (showLoading) {
+                    loadingDiv.style.display = "block";
+                } else {
+                    loadingDiv.style.display = "none";
+                }
+            }
+            this.showError = function (msg) {
+                var element = document.getElementById("divError");
+                element.classList.remove("slds-theme_success");
+                element.classList.add("slds-theme_error");
+                element.style.display = "block";
+                element.innerHTML = `<p>${msg}<p/>`;
+            }
+            this.showSuccess = function (msg) {
+                var element = document.getElementById("divError");
+                element.classList.remove("slds-theme_error");
+                element.classList.add("slds-theme_success");
+                element.style.display = "block";
+                element.innerHTML = `<p>${msg}<p/>`;
+            }
+            this.hideError = function () {
+                var element = document.getElementById("divError");
+                element.style.display = "none";
+                element.innerHTML = `<p><p/>`;
+            }
+        }
+
+        NE_ApproveProcess.instance = null;
+
+        NE_ApproveProcess.getInstance = function () {
+            if (NE_ApproveProcess.instance == null)
+                NE_ApproveProcess.instance = new NE_ApproveProcess();
+
+            return NE_ApproveProcess.instance;
+        }
+
+        NE_ApproveProcess.approveProcess = function () {
+            NE_ApproveProcess.getInstance().approveProcess();
+        }
+
+        NE_ApproveProcess.showLoading = function (show) {
+            NE_ApproveProcess.getInstance().showLoading(show);
+        }
+        NE_ApproveProcess.showSuccess = function (show) {
+            NE_ApproveProcess.getInstance().showSuccess(show);
+        }
+        NE_ApproveProcess.showError = function (show) {
+            NE_ApproveProcess.getInstance().showError(show);
+        }
+        NE_ApproveProcess.hideError = function () {
+            NE_ApproveProcess.getInstance().hideError();
+        }
+    </script>
+</apex:page>

@@ -1,0 +1,253 @@
+.param-section{
+    width: 100%;
+}
+.sticky {
+    position: -webkit-sticky;
+    position: sticky;
+    z-index: 9999;
+    color: #FFF;
+    padding: 10px 0;
+    line-height: 30px;
+}
+
+.sticky .action {
+    text-align: center;
+    cursor: pointer;
+}
+
+.sticky .action a {
+    color: #FFF;
+}
+
+.sticky table {
+    table-layout: fixed;
+    height: 100%;
+    width: 100%;
+}
+
+.sticky table tr:first-of-type td {
+    width: 100%;
+}
+
+.sticky table tr:first-of-type td:last-of-type {
+    width: 50px;
+    text-align: center;
+}
+
+.sticky table tr:first-of-type td:last-of-type {
+    width: 70px;
+}
+
+.sticky table tr:first-of-type td:first-of-type {
+    cursor: pointer;
+}
+
+.sticky .slds-icon {
+    width: 20px;
+}
+
+.sticky .slds-progress-ring_active-step .slds-progress-ring__path {
+    fill: rgb(75, 202, 129);
+}
+
+.sticky .slds-progress-ring_large {
+    width: 50px;
+    height: 50px;
+}
+
+.sticky .title {
+    font-weight: 600;
+    line-height: 16px;
+}
+
+.sticky .sub-title {
+    line-height: 14px;
+    padding-bottom: 20px;
+    font-size: 14px;
+}
+
+.footer {
+    position: -webkit-sticky;
+    position: sticky;
+    z-index: 9999;
+    background: #1589ee;
+    color: #FFF;
+    padding: 10px 0;
+    line-height: 30px;
+}
+
+.footer {
+    bottom: 0;
+    flex: 0 1 auto;
+}
+
+.param-section{
+    width: 100%;
+}
+
+.calendar-form input {
+    cursor: pointer;
+}
+
+.calendar-form .slds-input[readonly] {
+    padding: 5px 10px;
+    border: 1px solid rgb(221, 219, 218);
+    background-color: rgb(255, 255, 255);
+    font-size: inherit;
+    font-weight: inherit;
+}
+
+.calendar-form .slds-input[readonly]:focus,
+.calendar-form .slds-input[readonly]:active {
+    outline: 0;
+    border-color: rgb(21, 137, 238);
+    background-color: rgb(255, 255, 255);
+    box-shadow: 0 0 3px #0070d2;
+}
+
+.calendar-form .slds-visual-picker {
+    margin: 5px 0;
+    max-height: 999px;
+    transition: all .1s linear;
+}
+
+.calendar {
+    width: 100%;
+    height: 100%;
+    table-layout: fixed;
+    text-align: center;
+    line-height: 40px;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.calendar .label {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.calendar .wrapper {
+    position: relative;
+    border-radius: 50%;
+    background-color: transparent;
+    height: 40px;
+    width: 40px;
+    line-height: 40px;
+    margin: auto;
+    cursor: pointer;
+}
+
+.calendar .wrapper:not(.disabled) {
+    background-color: #9EFF9E;
+}
+
+.calendar .wrapper.invalid {
+    background-color: rgb(158, 255, 158, .7);
+}
+
+.calendar .wrapper.today {
+    color: #3C3C3C;
+    background-color: #9ef6ff;
+}
+
+.calendar .wrapper.active {
+    background-color: #1589ee;
+    color: #FFF !important;
+}
+
+.calendar .wrapper:not(.active):hover {
+    background-color: #72FE72;
+}
+
+.calendar .flag {
+    position: absolute;
+    top: -10px;
+    right: -15px;
+    width: 25px;
+    height: 25px;
+    background-color: red;
+    border-radius: 50%;
+    border-bottom-left-radius: 0;
+    font-size: 10px;
+    line-height: 25px;
+    color: #FFF;
+    z-index: 999;
+}
+
+.calendar .flag small {
+    line-height: 25px;
+    font-size: 8px;
+}
+
+.calendar .month {
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.calendar .month div {
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    margin: auto;
+    cursor: pointer;
+}
+
+.calendar .month div:hover {
+    background-color: #EFEFEF;
+}
+
+.calendar small {
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.calendar span {
+    -webkit-font-smoothing: antialiased;
+    font-style: normal;
+    font-variant: normal;
+    text-rendering: auto;
+    font-weight: 900;
+    font-family: 'Fa', sans-serif;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.calendar .slds-button__icon {
+    line-height: 40px;
+    height: 100%;
+}
+
+.calendar th,
+.calendar td {
+    text-align: center;
+    padding: 2px 0;
+}
+
+.calendar .today-wrapper {
+    padding: 5px;
+    text-align: center;
+    margin: auto;
+}
+
+html,
+body {
+    overflow-y: auto!important
+}
+
+.wrapper-loading {
+    position: fixed;
+    z-index: 99999;
+    background-color: rgb(255, 255, 255, .5);
+    height: 100%;
+    width: 100%;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+}
+
+.app {
+    min-height: calc(100% - 1px)!important;
+}

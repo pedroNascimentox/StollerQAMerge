@@ -1,0 +1,4 @@
+.THIS .word-break {
+   white-space: normal !important;
+   word-break: break-all !important;
+}

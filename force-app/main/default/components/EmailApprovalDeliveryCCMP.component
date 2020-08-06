@@ -1,0 +1,104 @@
+<apex:component controller="EmailApprovalDeliveryCController" access="global">
+    <apex:attribute name="deliveryRecord" type="AlteracaoDataEntrega__c" description="" required="required" assignTo="{!del}"/>
+    <apex:attribute name="userRecord" type="User" description="" required="required" assignTo="{!u}"/>
+    <apex:attribute name="status" type="String" description="" default="" />
+    <apex:attribute name="showStatus" type="Boolean" description="" default="false" />
+    
+    <p style="font-size:16px;margin:0px 0px 15px 0px;display:block">Prezado(a) <strong>{!userRecord.Name}</strong>,</p>
+    <div style="{!IF(!showStatus, 'display:block;', 'display:none;')}">
+        <p style="font-size:16px;margin:0px 0px 15px 0px;{!IF(!showStatus, 'display:block;', 'display:none;')}"><apex:outputText rendered="{!!showStatus}">Segue o processo de alteração de data de entrega para sua aprovação.</apex:outputText></p>
+    </div>
+    <div style="{!IF(showStatus, 'display:block;', 'display:none;')}">
+        <p style="font-size:16px;margin:0px 0px 15px 0px;{!IF(showStatus, 'display:block;', 'display:none;')}"><apex:outputText rendered="{!showStatus}">O processo de alteração de data de entrega nº <strong>{!deliveryRecord.Name}</strong> foi <strong>{!status}</strong>.</apex:outputText></p>
+    </div>
+    <p style="font-size:16px;margin:0px 0px 10px 0px;display:block">
+        <strong>Cliente: </strong>{!deliveryRecord.EmissorOrdem__r.Name}
+    </p>
+    <p style="font-size:16px;margin:0px 0px 10px 0px;display:block">
+        <strong>RTV: </strong>{!deliveryRecord.NomeRTV__c}
+    </p>
+    <p style="font-size:16px;margin:0px 0px 10px 0px;display:block">
+        <strong>Regional: </strong>{!deliveryRecord.IdOportunidade__r.RegionalNome__c}
+    </p>
+    <p style="font-size:16px;margin:0px 0px 10px 0px;display:block">
+        <strong>Tipo de Ordem: </strong>{!deliveryRecord.IdOportunidade__r.TipoOrdem__c}
+    </p>
+    <p style="font-size:16px;margin:0px 0px 10px 0px;{!IF(deliveryRecord.Motivo__c != null, 'display:block;', 'display:none;')}">
+        <strong>Motivo da Alteração: </strong>{!deliveryRecord.Motivo__c}
+    </p>
+    <p style="font-size:16px;margin:0px 0px 10px 0px;{!IF(deliveryRecord.DescricaoMotivo__c != null, 'display:block;', 'display:none;')}">
+        <strong>Descrição: </strong>{!deliveryRecord.DescricaoMotivo__c}
+    </p>
+    <p style="font-size:16px;margin:0px 0px 10px 0px;display:block">
+        <strong>Nr. da Oportunidade: </strong>{!deliveryRecord.IdOportunidade__r.Name}
+    </p>
+    <p style="font-size:16px;margin:0px 0px 10px 0px;{!IF(deliveryRecord.NumeroOrdemVendaSAP__c != null, 'display:block;', 'display:none;')}">
+        <strong>Nr. da Ordem de Venda: </strong>{!deliveryRecord.NumeroOrdemVendaSAP__c}
+    </p>
+    <p style="font-size:16px;margin:0px 0px 15px 0px;display:block">
+        <strong>Moeda: </strong>{!deliveryRecord.Moeda__c}
+    </p>
+
+    <table> 
+        <tr>
+            <th style="border-width: 1px;padding: 6px 12px;border-style: solid;border-color: #000000;background-color: #F2F2F2;text-align:
+            center;margin: auto;">Produto</th>
+            <th style="border-width: 1px;padding: 6px 12px;border-style: solid;border-color: #000000;background-color: #F2F2F2;text-align:
+            center;margin: auto;">Emb</th>
+            <th style="border-width: 1px;padding: 6px 12px;border-style: solid;border-color: #000000;background-color: #F2F2F2;text-align:
+            center;margin: auto;">Qde</th>
+            <th style="border-width: 1px;padding: 6px 12px;border-style: solid;border-color: #000000;background-color: #F2F2F2;text-align:
+            center;margin: auto;">Preço de Venda</th>
+            <th style="border-width: 1px;padding: 6px 12px;border-style: solid;border-color: #000000;background-color: #F2F2F2;text-align:
+            center;margin: auto;">Valor total</th>
+            <th style="border-width: 1px;padding: 6px 12px;border-style: solid;border-color: #000000;background-color: #F2F2F2;text-align:
+            center;margin: auto;">Data Original</th>
+            <th style="border-width: 1px;padding: 6px 12px;border-style: solid;border-color: #000000;background-color: #F2F2F2;text-align:
+            center;margin: auto;">Data Solicitada</th>
+        </tr>
+        <apex:repeat value="{!lineItemList}" var="item" id="theRepeat">
+            <tr>
+                <td style="border-width: 1px;padding: 6px 12px;border-style: solid;border-color: #000000;background-color: #F2F2F2;text-align:
+                center;margin: auto;">
+                     {!item.ProductName}
+                </td>
+                <td style="border-width: 1px;padding: 6px 12px;border-style: solid;border-color: #000000;background-color: #F2F2F2;text-align:
+                center;margin: auto;">
+                     {!item.Packing}
+                </td>
+                <td style="border-width: 1px;padding: 6px 12px;border-style: solid;border-color: #000000;background-color: #F2F2F2;text-align:
+                center;margin: auto;">
+                     {!item.Quantity}
+                </td>
+                <td style="border-width: 1px;padding: 6px 12px;border-style: solid;border-color: #000000;background-color: #F2F2F2;text-align:
+                center;margin: auto;">
+                    <apex:outputText rendered="{!deliveryRecord.Moeda__c == 'BRL'}" style="font-size: 14px" value="R$ {!item.PrecoVendasJurosBRLUSD}"/>
+                    <apex:outputText rendered="{!deliveryRecord.Moeda__c == 'USD'}" style="font-size: 14px" value="US$ {!item.PrecoVendasJurosBRLUSD}"/>
+                </td>
+                <td style="border-width: 1px;padding: 6px 12px;border-style: solid;border-color: #000000;background-color: #F2F2F2;text-align:
+                center;margin: auto;">
+                    <apex:outputText rendered="{!deliveryRecord.Moeda__c == 'BRL'}" style="font-size: 14px" value="R$ {!item.TotalValue}"/>
+                    <apex:outputText rendered="{!deliveryRecord.Moeda__c == 'USD'}" style="font-size: 14px" value="US$ {!item.TotalValue}"/>
+                </td>
+                <td style="border-width: 1px;padding: 6px 12px;border-style: solid;border-color: #000000;background-color: #F2F2F2;text-align:
+                center;margin: auto;">
+                    <apex:outputText value="{0, date, dd/MM/yyyy}"><apex:param value="{!item.OriginalDate}" /></apex:outputText>
+                </td>
+                <td style="border-width: 1px;padding: 6px 12px;border-style: solid;border-color: #000000;background-color: #F2F2F2;text-align:
+                center;margin: auto;">
+                    <apex:outputText value="{0, date, dd/MM/yyyy}"><apex:param value="{!item.NewDate}" /></apex:outputText>
+                </td>
+            </tr>
+        </apex:repeat>
+    </table>
+    
+    <p style="font-size:16px;margin:10px 0px 10px 0px;display:block">
+        <strong>Valor total: </strong>{!sumValues}
+    </p>
+    <p style="font-size:16px;margin:0px 0px 10px 0px;{!IF(deliveryRecord.IdOportunidade__r.ObservacaoInterna__c != null, 'display:block;', 'display:none;')}">
+        <strong>Observações: </strong>{!deliveryRecord.IdOportunidade__r.ObservacaoInterna__c}
+    </p>
+    <br/>
+    <apex:outputLink rendered="{!approval != null && status != 'Aprovado' && status != 'Reprovado'}" style="font-size: 16px;margin:0px 0px 10px 0px;display:block;" value="{!approval}">Link da Aprovação</apex:outputLink>
+    
+</apex:component>

@@ -1,0 +1,140 @@
+<aura:component controller="FileUploadHandler"
+    implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes,force:lightningQuickAction"
+    access="global">
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    <aura:attribute name="selectedOpportunityDocuments" type="String[]" />
+    <aura:attribute name="userHasFullAccess" type="Boolean" />
+    <aura:attribute name="hasFiles" type="Boolean" />
+    <aura:attribute name="files" type="FileUploadHandler.DocumentVO[]" />
+    <aura:attribute name="recordId" type="string" default="0010K00001yb8ycQAA" />
+    <aura:attribute name="accept" type="List" default="['.doc','.docx','.jpg','.jpeg','.pdf','.csv','.xlsx']" />
+    <aura:attribute name="multiple" type="Boolean" default="true" />
+    <aura:attribute name="Spinner" type="Boolean" default="false" />
+    <aura:attribute name="data" type="Object" />
+    <aura:attribute name="columns" type="List" />
+    <aura:attribute name="allData" type="List" />
+    <aura:attribute name="currentPageNumber" type="Integer" default="1" />
+    <aura:attribute name="pageSize" type="Integer" default="10" />
+    <aura:attribute name="totalPages" type="Integer" default="0" />
+    <aura:attribute name="pageList" type="List" />
+    <div class="slds">
+        <lightning:notificationsLibrary aura:id="notifLib" />
+        <lightning:overlayLibrary aura:id="overlayLib"/>
+        <div class="contentbox">
+            <div class="slds-page-header header">Arquivos</div>
+            <div class="slds-grid">
+                <div style="width:100%">
+                    <lightning:fileUpload style="width:100px;" label="" multiple="{!v.multiple}" accept="{!v.accept}" recordId="{!v.recordId}" onuploadfinished="{!c.uploadFinished}" />
+                    <br/>
+                    <center>
+                        <aura:if isTrue="{!and(v.hasFiles, v.userHasFullAccess)}">
+                            <lightning:button onclick="{!c.validateDocuments}">Validar</lightning:button>
+                        </aura:if>
+                            <lightning:button onclick="{!c.delFiles}">Excluir</lightning:button>
+                        </center>
+                </div>
+            </div><br/>
+            <div class="slds-form--compound" style="position:relative">
+                <aura:if isTrue="{!!v.hasFiles}">
+                    <div class="slds-box slds-theme_shade slds-theme_alert-texture" style="width:100%;">
+                        <center>
+                            <p>
+                                Não existem documentos para essa oportunidade.
+                            </p>
+                        </center>
+                    </div>
+                </aura:if>
+                <aura:if isTrue="{!v.hasFiles}">
+                    <div style="width:100%">
+                        <table style="width:100%;" class="slds-table slds-table--bordered">
+                            <thead>
+                                <tr>
+                                    <th width="5%">Selecionar</th>
+                                    <th width="14%">Tipo de Documento</th>
+                                    <th width="5%">Validado</th>
+                                    <th width="10%">Usuário Responsável</th>
+                                    <th width="11%">Data de Criação</th>
+                                    <th width="10%">Usuário Validador</th>
+                                    <th width="11%">Data de Validação</th>
+                                    <th width="34%">Nome do documento anexo</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <aura:iteration items="{!v.data}" var="f">
+                                    <tr>
+                                        <td class="word-break" style="text-align: center;">
+                                            <ui:inputCheckbox class="slds-align_absolute-center" text="{!f.opportunityDocumentId}" aura:id="{!f.opportunityDocumentId}" change="{!c.setSelectedOpportunityDocuments}"/>
+                                            <!-- <div class="slds-checkbox">
+                                                <input type="checkbox" name="chk" id="{!f.opportunityDocumentId}" checked="{!f.validated}" />
+                                                <label class="slds-checkbox__label" for="{!f.opportunityDocumentId}">
+                                                    <span class="slds-checkbox_faux"></span>
+                                                </label>
+                                            </div> -->
+                                        </td>
+                                        <td style="white-space:normal!important;word-break:break-word!important">{!f.documentType}</td>
+                                        <td class="word-break" style="text-align: center;">
+                                            <div class="slds-checkbox">
+                                                <input type="checkbox" name="chk" checked="{!f.validated}"/>
+                                                <label class="slds-checkbox__label">
+                                                    <span class="slds-checkbox_faux"></span>
+                                                </label>
+                                            </div>
+                                        </td>
+                                        <td class="word-break">{!f.responsibleUserName}</td>
+                                        <td class="word-break">{!f.createdDate}</td>
+                                        <td class="word-break">{!f.validatorUserName}</td>
+                                        <td class="word-break">{!f.validationDate}</td>
+                                        <td class="word-break"><a href="" id="{!f.documentId}" onclick="{!c.previewFile}">{!f.documentName}</a></td>
+                                    </tr>
+                                </aura:iteration>
+                            </tbody>
+                        </table>
+                    </div>
+                    <center>
+                        <lightning:layout>
+                            <lightning:layoutItem padding="around-small" flexibility="auto">
+                                <lightning:button label="Primeira" iconName="utility:left" iconPosition="left" onclick="{!c.onFirst}"
+                                    disabled="{! v.currentPageNumber == 1}" />
+                                <lightning:button iconName="utility:chevronleft" iconPosition="left" onclick="{!c.onPrev}"
+                                    disabled="{! v.currentPageNumber == 1}" />
+                                <span class="slds-p-horizontal_x-small">
+                                    <a onclick="{!c.processMe}" name="1" class="{! (v.currentPageNumber == 1) ? 'selected' : ''}">1</a>
+                                </span>
+                                <span class="slds-p-horizontal_xxx-small">
+                                    <a>...</a>
+                                </span>
+                            
+                                <aura:iteration items="{!v.pageList}" var="item">
+                                    <span class="slds-p-horizontal_x-small">
+                                        <a onclick="{!c.processMe}" name="{!item}"
+                                            class="{! (v.currentPageNumber == item) ? 'selected' : ''}">{!item}</a>
+                                    </span>
+                                </aura:iteration>
+                            
+                                <span class="slds-p-horizontal_xxx-small">
+                                    <a>...</a>
+                                </span>
+                                <span class="slds-p-horizontal_x-small">
+                                    <a onclick="{!c.processMe}" name="{!v.totalPages}"
+                                        class="{! (v.currentPageNumber == v.totalPages) ? 'selected' : ''}">{!v.totalPages}</a>
+                                </span>
+                                <lightning:button iconName="utility:chevronright" iconPosition="right"
+                                    disabled="{! v.currentPageNumber == v.totalPages}" onclick="{!c.onNext}" />
+                                <lightning:button label="Última" iconName="utility:right" iconPosition="right"
+                                    disabled="{! v.currentPageNumber == v.totalPages}" onclick="{!c.onLast}" />
+                            </lightning:layoutItem>
+                        </lightning:layout>
+                    </center>
+                </aura:if>
+                <aura:if isTrue="{!v.Spinner}">
+                    <div class="slds-spinner_container">
+                        <div class="slds-spinner slds-spinner--medium" aria-hidden="false" role="alert">
+                            <div class="slds-spinner__dot-a"></div>
+                            <div class="slds-spinner__dot-b"></div>
+                        </div>
+                    </div>
+                </aura:if>
+            </div>
+        </div>
+    </div>
+</aura:component>

@@ -1,0 +1,286 @@
+<div class="wrapper-products">
+    <div class="slds-grid">
+        <div class="slds-col slds-size_12-of-12">
+            <div class="slds-section slds-is-open">
+                <h3 class="slds-section__title slds-theme_shade dblock section-opp">
+                    <div class="slds-grid slds-wrap">
+                        <div class="slds-col slds-size_12-of-12">
+                            <span class="slds-p-horizontal_small" title="{{base.currOpp.name}}">
+                                OV-{{base.currOpp.name}}
+                            </span>
+                            <small class="slds-p-horizontal_small dblock">{{base.currOpp.rtvName}}</small>
+                        </div>
+                    </div>
+                </h3>
+                <div aria-hidden="false" class="slds-section__content price-list">
+                    <div class="slds-grid slds-wrap">
+                        <div class="slds-col slds-size_1-of-1 slds-large-size_1-of-2">
+                            <div class="slds-form-element">
+                                <label class="slds-form-element__label" for="changeReason">Motivo da alteração</label>
+                                <div class="slds-form-element__control {{base.currOpp.changeReason == null && base.currOpp.changeType != null ? 'slds-has-error' : ''}}">
+                                    <div class="slds-select_container">
+                                        <select
+                                            class="slds-select"
+                                            id="changeReason"
+                                            ng-model="base.currOpp.changeReason"
+                                            ng-options="option as option.label for option in base.changeReasons"></select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slds-grid slds-wrap {{base.currOpp.changeType == null ? 'disabled' : ''}}">                        
+                        <div class="slds-col slds-size_1-of-1 slds-large-size_1-of-2">
+                            <div
+                                class="slds-form-element">
+                                <label class="slds-form-element__label slds-m-right_none"
+                                    for="numero-{{$index+base.currOpp.id}}">Descrição</label>
+                                <textarea type="text" id="numero-{{$index+base.currOpp.id}}" placeholder=""
+                                    class="slds-input slds-textarea" ng-model="base.currOpp.description" rows="4"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="slds-grid {{base.currOpp.changeType == null ? 'disabled' : ''}}">
+        <div class="slds-col slds-size_12-of-12">
+            <div class="slds-section slds-is-open">
+                <h3 class="slds-section__title slds-theme_shade dblock section-opp">
+                    <div class="slds-grid slds-wrap">
+                        <div class="slds-col slds-size_12-of-12">
+                            <span class="slds-p-horizontal_small" title="Produtos">
+                                Produtos <small class="slds-p-horizontal_small">Itens do Pedido</small>
+                            </span>
+                        </div>
+                    </div>
+                </h3>
+                <div aria-hidden="false" class="slds-section__content">
+                    <div class="slds-grid slds-wrap price-list ship-list">
+                        <div class="slds-col slds-size_1-of-1 slds-large-size_1-of-3 slds-medium-size_1-of-2"
+                            ng-repeat="product in base.currOpp.products | orderBy: 'name'">
+                            <fieldset class="slds-form-element">
+                                <div class="slds-form-element__control">
+                                    <div class="slds-visual-picker slds-visual-picker_vertical">
+                                        <label for="visual-picker-{{$index+product.id+product.receiver.id}}">
+                                            <span
+                                                class="slds-visual-picker__figure slds-visual-picker__text slds-align_absolute-left">
+                                                <span>
+                                                    <span class="slds-text-heading_medium slds-m-bottom_x-small">{{product.name}}</span>
+                                                    <span class="slds-text-title slds-m-bottom_x-small">{{product.sku}}</span>
+                                                    <div class="slds-grid"
+                                                        ng-if="base.currOpp.orderType.value == 'Conta e Ordem'">
+                                                        <div class="slds-col slds-size_3-of-3">
+                                                            <sf-lookup
+                                                                class="{{product.receiver == null && product.confirmed ? 'slds-has-error' : ''}}"
+                                                                placeholder="Buscar Cliente..." ng-model="product.receiver"
+                                                                ng-change="" object="Account" label="Cliente Recebedor"
+                                                                search-target="accountFields"
+                                                                returned-fields="accountReturnedFields"
+                                                                subtitle="getAccountSubtitle"
+                                                                icon-path="/apexpages/slds/latest/assets/icons/standard-sprite/svg/symbols.svg#account">
+                                                            </sf-lookup>
+                                                        </div>
+                                                    </div>
+                                                    <div class="slds-grid slds-wrap">
+                                                        <div class="slds-col slds-size_1-of-1">
+                                                            <div class="slds-form-element {{product.deliveryDateFormated == product.originalDate ? 'slds-has-error' : ''}}">
+                                                                <label class="slds-form-element__label"
+                                                                    for="{{calendarName(product)}}">Data de
+                                                                    Entrega</label>
+                                                                <div class="slds-form-element__control calendar-form">
+                                                                    <input type="text" id="{{calendarName(product)}}"
+                                                                        class="slds-input"
+                                                                        ng-model="product.deliveryDateFormated"
+                                                                        ng-click="this[openCalendar(calendarName(product))]"
+                                                                        readonly="true" />
+                                                                    <div
+                                                                        class="slds-visual-picker slds-visual-picker_vertical {{calendarVisibility[calendarName(product)] ? '' : 'close-transition'}}">
+                                                                        <label for="{{'wrapper-' + calendarName(product)}}">
+                                                                            <span
+                                                                                class="slds-visual-picker__figure slds-visual-picker__text slds-align_absolute-left">
+                                                                                <span>
+                                                                                    <div id="{{'wrapper-' + calendarName(product)}}" class="wrapper-calendar">
+                                                                                    </div>
+                                                                                </span>
+                                                                            </span>
+                                                                        </label>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="slds-grid {{base.currOpp.changeType.value == 'Parcial' ? '' : 'disabled'}}">
+                                                        <div class="slds-col slds-size_3-of-3">
+                                                            <div class="slds-form-element {{isMultiple(product) ? '' : 'slds-has-error'}}">
+                                                                <label
+                                                                    class="slds-form-element__label slds-m-right_none"
+                                                                    for="quantidade-{{$index+product.id+product.receiver.id}}">Quantidade</label>
+                                                                <div class="slds-form-element__control">
+                                                                    <button
+                                                                        class="slds-button slds-button_icon slds-button_icon-small slds-input__button_decrement"
+                                                                        title="Decrement counter"
+                                                                        ng-click="this[decrement(product)]">
+                                                                        <svg class="slds-button__icon"
+                                                                            aria-hidden="true">
+                                                                            <use
+                                                                                xlink:href="/apexpages/slds/latest/assets/icons/utility-sprite/svg/symbols.svg#dash">
+                                                                            </use>
+                                                                        </svg>
+                                                                        <span class="slds-assistive-text">Decrement
+                                                                            counter</span>
+                                                                    </button>
+                                                                    <input type="number"
+                                                                        id="quantidade-{{$index+product.id+product.receiver.id}}"
+                                                                        step="1" placeholder=""
+                                                                        class="slds-input slds-input_counter"
+                                                                        ng-model="product.quantity"
+                                                                        ng-change="quantityChange(product, false, false)" />
+                                                                    <button
+                                                                        class="slds-button slds-button_icon slds-button_icon-small slds-input__button_increment"
+                                                                        title="Increment counter"
+                                                                        ng-click="this[increment(product)]">
+                                                                        <svg class="slds-button__icon"
+                                                                            aria-hidden="true">
+                                                                            <use
+                                                                                xlink:href="/apexpages/slds/latest/assets/icons/utility-sprite/svg/symbols.svg#add">
+                                                                            </use>
+                                                                        </svg>
+                                                                        <span class="slds-assistive-text">Increment
+                                                                            counter</span>
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="slds-grid">
+                                                        <div class="slds-col">
+                                                            <div class="slds-form-element">
+                                                                <label class="slds-form-element__label"
+                                                                    for="text-input-id-1">Valor Total em BRL</label>
+                                                                <p>R$ {{calcTotalValue(product, false)}}</p>
+                                                            </div>
+                                                        </div>
+                                                        <div class="slds-col">
+                                                            <div class="slds-form-element right">
+                                                                <label class="slds-form-element__label"
+                                                                    for="text-input-id-1">Valor Total em USD</label>
+                                                                <p>US$ {{calcTotalValue(product, true)}}</p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </span>
+                                                <footer class="slds-card__footer">
+                                                    <div class="slds-grid">
+                                                        <div class="slds-col">
+                                                            <div class="slds-form-element">
+                                                                <label class="slds-form-element__label"
+                                                                    for="text-input-id-1">Data de Entrega Original</label>
+                                                                <p>{{formatScopeDate(product.initDeliveryDate)}}</p>
+                                                            </div>
+                                                        </div>
+                                                        <div class="slds-col">
+                                                            <div class="slds-form-element right">
+                                                                <label class="slds-form-element__label"
+                                                                    for="text-input-id-1">Quantidade Original</label>
+                                                                <p>{{product.initQuantity}}</p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="slds-grid">
+                                                        <div class="slds-col">
+                                                            <div class="slds-form-element">
+                                                                <label class="slds-form-element__label"
+                                                                    for="text-input-id-1">Data de Faturamento Original</label>
+                                                                <p>{{formatScopeDate(product.initBillingDate)}}</p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="slds-grid slds-wrap">
+                                                        <div class="slds-col list-of-dates">
+                                                            <div class="slds-form-element">
+                                                                <div class="wrapper-small">
+                                                                    <small>
+                                                                        <span>
+                                                                            <svg class="slds-section__title-action-icon slds-button__icon slds-button__icon_left"
+                                                                                aria-hidden="true">
+                                                                                <use
+                                                                                    xlink:href="/apexpages/slds/latest/assets/icons/utility-sprite/svg/symbols.svg#company">
+                                                                                </use>
+                                                                            </svg>
+                                                                            {{product.selectedAccount != null ? product.selectedAccount.name : '&nbsp;'}}
+                                                                        </span>
+                                                                    </small>
+                                                                    <small ng-if="product.orderType == 'Remanejamento'">
+                                                                        <span
+                                                                            ng-if="product.shipper != null && product.shipper.id > ' '">
+                                                                            <svg class="slds-section__title-action-icon slds-button__icon slds-button__icon_left"
+                                                                                aria-hidden="true">
+                                                                                <use
+                                                                                    xlink:href="/apexpages/slds/latest/assets/icons/utility-sprite/svg/symbols.svg#internal_share">
+                                                                                </use>
+                                                                            </svg>
+                                                                            {{product.shipper.name}}
+                                                                        </span>
+                                                                        <span
+                                                                            ng-if="product.shipper == null || product.shipper.id == ''">
+                                                                            <svg class="slds-section__title-action-icon slds-button__icon slds-button__icon_left"
+                                                                                aria-hidden="true">
+                                                                                <use
+                                                                                    xlink:href="/apexpages/slds/latest/assets/icons/utility-sprite/svg/symbols.svg#internal_share">
+                                                                                </use>
+                                                                            </svg>
+                                                                            <i>CLIENTE REMANEJAMENTO NÃO
+                                                                                IDENTIFICADO</i>
+                                                                        </span>
+                                                                    </small>
+                                                                    <small ng-if="product.orderType == 'Conta e Ordem'">
+                                                                        <span
+                                                                            ng-if="product.receiver != null && product.receiver.id > ' '">
+                                                                            <svg class="slds-section__title-action-icon slds-button__icon slds-button__icon_left"
+                                                                                aria-hidden="true">
+                                                                                <use
+                                                                                    xlink:href="/apexpages/slds/latest/assets/icons/utility-sprite/svg/symbols.svg#event">
+                                                                                </use>
+                                                                            </svg>
+                                                                            {{product.receiver.name}}
+                                                                        </span>
+                                                                        <span
+                                                                            ng-if="product.receiver == null || product.receiver.id == ''">
+                                                                            <svg class="slds-section__title-action-icon slds-button__icon slds-button__icon_left"
+                                                                                aria-hidden="true">
+                                                                                <use
+                                                                                    xlink:href="/apexpages/slds/latest/assets/icons/utility-sprite/svg/symbols.svg#event">
+                                                                                </use>
+                                                                            </svg>
+                                                                            <i>RECEBEDOR NÃO IDENTIFICADO</i>
+                                                                        </span>
+                                                                    </small>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <span class="slds-text-title slds-m-bottom_x-small center pt-10"><strong>{{product.oppNumber + ' • ' + product.deliveryName}}</strong></span>
+                                                </footer>
+                                            </span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </fieldset>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="slds-spinner" ng-show="isLoading">
+    <div class="slds-spinner_container">
+        <div role="status" class="slds-spinner slds-spinner_medium slds-spinner_brand">
+            <span class="slds-assistive-text">Loading</span>
+            <div class="slds-spinner__dot-a"></div>
+            <div class="slds-spinner__dot-b"></div>
+        </div>
+    </div>
+</div>

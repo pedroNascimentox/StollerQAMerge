@@ -1,0 +1,69 @@
+<apex:component controller="CaseClosedForComplainController" access="global">
+    <apex:attribute name="relatedCase" type="Case" description="" required="required" assignTo="{!caseRecord}" />
+
+    <style>
+        table {
+            font-family: arial, sans-serif;
+            border-collapse: collapse;
+            width: 50%;
+        }
+
+        td,
+        th {
+            border: 3px solid #dddddd;
+            border-color: black;
+            text-align: center;
+            padding: 8px;
+        }
+    </style>
+    <div align="right">
+        <img src="https://www.stoller.com.br/wp-content/uploads/2019/11/logo-stoller.png" height="80" width="80" />
+    </div>
+    <font face="Arial" size="3">
+        Prezado(a) <b>{!relatedCase.Contact.Name}</b>
+        <br/>
+        <br/> Informamos que o processo de reclamação <b>{!relatedCase.CaseNumber}</b>, foi <b>{!relatedCase.Status}</b> conforme as tratativas abaixo:
+        <br/>
+        <br/>
+
+        <table style="font-family: arial, sans-serif; border-collapse: collapse; width: 50%;border: 2px solid #dddddd; border-color: black;text-align: center; padding: 8px;">
+            <tr>
+                <th style="border: 1px solid #dddddd; border-color: black;  text-align: center; padding: 8px;">Procedimento da Reclamação</th>
+                <th style="border: 1px solid #dddddd; border-color: black;  text-align: center; padding: 8px;">Nº do Pedido</th>
+                <th style="border: 1px solid #dddddd; border-color: black;  text-align: center; padding: 8px;">Produto</th>
+                <th style="border: 1px solid #dddddd; border-color: black;  text-align: center; padding: 8px;">Emb</th>
+                <th style="border: 1px solid #dddddd; border-color: black;  text-align: center; padding: 8px;">Qde</th>
+                <th style="border: 1px solid #dddddd; border-color: black;  text-align: center; padding: 8px;">Valor unitário</th>
+                <th style="border: 1px solid #dddddd; border-color: black;  text-align: center; padding: 8px;">Valor total</th>
+            </tr>
+            <apex:repeat value="{!associacaoPedidoReclamacaoList}" var="associationItem" id="theRepeat">
+                <tr>
+                    <td style="border: 1px solid #dddddd; border-color: black;  text-align: center; padding: 8px;">{!associationItem.Procedimento_de_Reclama_o__c}</td>
+                    <td style="border: 1px solid #dddddd; border-color: black;  text-align: center; padding: 8px;">{!associationItem.N_Pedido__c}</td>
+                    <td style="border: 1px solid #dddddd; border-color: black;  text-align: center; padding: 8px;">{!associationItem.Produto__r.name}</td>
+                    <td style="border: 1px solid #dddddd; border-color: black;  text-align: center; padding: 8px;">{!associationItem.Embalagem__c}</td>
+                    <td style="border: 1px solid #dddddd; border-color: black;  text-align: center; padding: 8px;">{!associationItem.Quantidade__c}</td>
+                    <td style="border: 1px solid #dddddd; border-color: black;  text-align: center; padding: 8px;">{!associationItem.Valor_unit_rio__c}</td>
+                    <td style="border: 1px solid #dddddd; border-color: black;  text-align: center; padding: 8px;">{!associationItem.Valor_Total__c}</td>
+                </tr>
+            </apex:repeat>
+        </table>
+        <br/>
+        <b>Total Geral:</b> {!caseTotalValue}
+        <br/>
+
+        <br/> Por favor, enviar o seu arquixo XML referente a NF de Devolução / Troca para o e-mail
+        <a href="mailto:fiscal@stoller.com.br">fiscal@stoller.com.br</a> e <a href="mailto:reclamacao@stoller.com.br">reclamacao@stoller.com.br</a> <br/> 
+        <br/>
+        <br/> Dúvidas com a emissão da NF, favor entrar em contato com
+        <a href="mailto:moliveira@stoller.com.br">moliveira@stoller.com.br</a> - Tel (019) 3707-1231.
+        <br/>
+        <br/> Atenciosamente
+        <br/>
+        <br/> Nathália Siqueira Carminati
+        <br/> Customer Service
+        <br/> E-mail:
+        <a href="mailto:reclamacao2@stoller.com.br">reclamacao2@stoller.com.br</a>
+        <br/> Telefone: (019) 3707-1243
+    </font>
+</apex:component>

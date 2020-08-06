@@ -1,0 +1,64 @@
+<apex:page standardController="DocumentoOportunidade__c" extensions="OpportunityDocumentsController" showHeader="false" lightningStylesheets="true">
+
+    <head>
+        <apex:includeScript value="{! $Resource.Jquery }" />
+        <apex:includeScript value="{! $Resource.dataTableJS }" />
+        <apex:includeScript value="{! $Resource.opportunityDocumentsJS }" />
+        <apex:includeScript value="{! $Resource.SweetalertJs }" />
+        <apex:stylesheet value="{! $Resource.SweetalertCss}" />
+        <apex:stylesheet value="{! $Resource.dataTableCSS }" />
+        <apex:stylesheet value="{! $Resource.opportunityDocumentsStyle }" />
+        <apex:stylesheet value="{! $Resource.slds_css }" />
+        <script>
+
+            window.REMOTE_ACTION_URLS = {
+                validateOpportunityDocuments: '{!$RemoteAction.OpportunityDocumentsController.validateOpportunityDocuments}',
+                deleteOpportunityDocuments:   '{!$RemoteAction.OpportunityDocumentsController.deleteOpportunityDocuments}',
+                getDocumentsRemote:           '{!$RemoteAction.OpportunityDocumentsController.getDocumentsRemote}',
+            }
+
+            window.onload = function () {
+                opportunityDocumentsJS.init();
+            }
+
+        </script>
+    </head>
+    <apex:sectionHeader title="Documentos da Oportunidade" />
+    <br/>
+    <div>
+        <center>
+            <button class="slds-button slds-button_neutral" style="{!IF(AND(userHasFullAccess, items.size > 0), '', 'display:none')}" onclick="opportunityDocumentsJS.validateOpportunityDocuments()">Validar</button>
+            <button class="slds-button slds-button_neutral" style="{!IF(AND(userHasFullAccess, items.size > 0), '', 'display:none')}" onclick="opportunityDocumentsJS.deleteOpportunityDocuments()">Excluir</button>
+        </center>
+    </div>
+    <br/>
+    <apex:pageBlock >
+        <apex:pageBlockSection title="Registros de Documentos da Oportunidade" collapsible="false" columns="1" />
+        <body>
+            <div id="table_container">
+            </div>
+            <table id="main_load" class="tb_load" cellspacing="0px" cellpadding="0px">
+                <tr>
+                    <td align="center" valign="middle">
+                        <div class="box_load">
+                            <div class="sk-fading-circle">
+                                <div class="sk-circle1 sk-circle"></div>
+                                <div class="sk-circle2 sk-circle"></div>
+                                <div class="sk-circle3 sk-circle"></div>
+                                <div class="sk-circle4 sk-circle"></div>
+                                <div class="sk-circle5 sk-circle"></div>
+                                <div class="sk-circle6 sk-circle"></div>
+                                <div class="sk-circle7 sk-circle"></div>
+                                <div class="sk-circle8 sk-circle"></div>
+                                <div class="sk-circle9 sk-circle"></div>
+                                <div class="sk-circle10 sk-circle"></div>
+                                <div class="sk-circle11 sk-circle"></div>
+                                <div class="sk-circle12 sk-circle"></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </body>
+    </apex:pageBlock>
+</apex:page>

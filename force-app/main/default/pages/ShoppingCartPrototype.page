@@ -1,0 +1,657 @@
+<apex:page sidebar="false" showHeader="false" standardStylesheets="false"  >
+    <html xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" ng-app="shoppingCartApp">
+    
+        <head>
+            <title>Prototype | Shopping Cart</title>
+            <apex:slds ></apex:slds>
+            <meta name="viewport" content="width=device-width, user-scalable=no" />
+            <apex:stylesheet value="{!$Resource.opportunity_app_css}" />
+            <style>
+                html, body {
+                    color: #3e3e3c;
+                    width: 100%;
+                    height: 100%;
+                    background-color: #FFF;
+                }
+                ::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
+                    color: #AAA !important;
+                    opacity: 1; /* Firefox */
+                }
+
+                :-ms-input-placeholder { /* Internet Explorer 10-11 */
+                    color: #AAA !important;
+                }
+
+                ::-ms-input-placeholder { /* Microsoft Edge */
+                    color: #AAA !important;
+                }
+                .header,
+                .footer {
+                    position: -webkit-sticky;
+                    position: sticky;
+                    z-index: 9999;
+                    background: #1589ee;
+                    color: #FFF;
+                    padding: 10px 0;
+                    line-height: 30px;
+                }
+                .app {
+                    min-height: 100%;
+                    flex-flow: column;
+                    display: flex;
+                }
+                .header {
+                    top: 0;
+                    flex: 0 1 auto;
+                }
+                .container {
+                    flex: 1 1 auto;
+                }
+                .footer {
+                    bottom: 0;
+                    flex: 0 1 auto;
+                }
+                .sticky .action {
+                    text-align: center;
+                }
+                .sticky .action a {
+                    color: #FFF;
+                }
+                .sticky table {
+                    table-layout: fixed;
+                    height: 100%;
+                    width: 100%;
+                }
+                .sticky table tr:first-of-type td {
+                    width: 100%;
+                }
+                .sticky table tr:first-of-type td:first-of-type,
+                .sticky table tr:first-of-type td:last-of-type {
+                    width: 50px;
+                    text-align: center;
+                }
+                .sticky table tr:first-of-type td:last-of-type {
+                    width: 70px;
+                }
+                .sticky .slds-icon {
+                    width: 20px;
+                }
+                .sticky .slds-progress-ring_active-step .slds-progress-ring__path {
+                    fill: rgb(75, 202, 129);
+                }
+                .sticky .slds-progress-ring_large {
+                    width: 50px;
+                    height: 50px;
+                }
+                .sticky .title {
+                    font-weight: 600;
+                    line-height: 16px;
+                }
+                .sticky .sub-title {
+                    line-height: 14px;
+                    padding-bottom: 20px;
+                    font-size: 14px;
+                }
+                .search-wrapper {
+                    background: #f3f2f2;
+                    padding: 10px 10px;
+                    height: 60px;
+                    width: 100%;
+                }
+                .search-wrapper .search-container {
+                    width: 100%;
+                    height: 100%;
+                    border: 0;
+                    border-radius: 20px;
+                    background: #FFF;
+                    position: relative;
+                }
+                .search-wrapper .search-container div {
+                    height: 100%;
+                }
+                .search-wrapper .search-container [class*="wrapper-icon-"] {
+                    position: absolute;
+                    top: 0;
+                    padding: 5px 15px;
+                }
+                .search-wrapper .search-container .wrapper-icon-left {
+                    left: 0;
+                }
+                .search-wrapper .search-container .wrapper-icon-right {
+                    right: 0;
+                    border-left: 1px solid #DDD;
+                }
+                .search-wrapper .search-container span {
+                    color: #1589ee;
+                    font-size: 20px;
+                    line-height: 60px;
+                    display: block;
+                    height: 100%;
+                }
+                .search-wrapper .search-container .wrapper-icon-left svg {
+                    fill: #CCC;
+                }
+                .search-wrapper .search-container .wrapper-icon-right svg {
+                    fill: #CCC;
+                }
+                .search-wrapper .search-container span .slds-icon {
+                    width: 20px;
+                }
+                .search-wrapper input {
+                    border: 0;
+                    width: 100%;
+                    height: 100%;
+                    outline: none;
+                    font-size: 16px;
+                    padding: 5px 44px;
+                    padding-right: 54px;
+                    background: transparent;
+                }
+                .slds-scope .slds-text-heading_medium,
+                .slds-scope .slds-text-heading--medium {
+                    word-break: break-all;
+                }
+                .slds-scope .slds-gutters {
+                    margin: auto;
+                }
+                .slds-scope .slds-visual-picker_vertical {
+                    max-width: 100%;
+                }
+                .slds-scope .slds-visual-picker_vertical .slds-visual-picker__figure,
+                .slds-scope .slds-visual-picker_vertical .slds-visual-picker__body {
+                    max-width: 100%;
+                }
+                .slds-scope .slds-visual-picker_vertical .slds-visual-picker__figure {
+                    min-height: 6rem;
+                    height: auto;
+                }
+                .slds-scope .slds-icon_x-small,
+                .slds-scope .slds-icon--x-small {
+                    width: 15px;
+                    height: 15px;
+                    margin-top: 2px;
+                }
+                .slds-scope .slds-section__title {
+                    border-radius: 0;
+                }
+                .slds-scope .slds-section {
+                    margin-top: 0;
+                    margin-bottom: 1rem;
+                }
+                .slds-scope .slds-section.slds-is-open .slds-section__content {
+                    padding: .5rem;
+                    background-color: #FFF !important;
+                }
+                .slds-section__content.clear {
+                    padding: 0 !important;
+                }
+                .slds-grid {
+                    width: 100%;
+                }
+                .slds-scope .slds-section__title {
+                    border: 0;
+                }
+                .slds-scope .slds-section__title-action {
+                    border-radius: 0;
+                }
+                .slds-scope .slds-text-heading_medium,
+                .slds-scope .slds-text-heading--medium {
+                    font-size: 1.25rem;
+                }
+                .slds-scope .slds-visual-picker_vertical input:focus~label .slds-visual-picker__text .slds-text-heading_medium {
+                    text-decoration: none;
+                }
+                .slds-progress-ring__content {
+                    color: #3e3e3c;
+                }
+                .price-list input,
+                .price-list .slds-input, 
+                .price-list .slds-visual-picker input,
+                .price-list select,
+                .price-list .slds-select, 
+                .price-list .slds-visual-picker select {
+                    background-color: rgb(255, 255, 255);
+                    border: 1px solid rgb(221, 219, 218);
+                    border-radius: .25rem;
+                    width: 100%;
+                    transition: border .1s linear,background-color .1s linear;
+                    -webkit-appearance: none;
+                    display: inline-block;
+                    min-height: 48px;
+                    padding: 5px 10px;
+                    height: auto;
+                    clip: auto;
+                    margin: auto;
+                    overflow: auto;
+                    position: initial;
+                    line-height: normal;
+                }
+                .price-list .slds-visual-picker:active .slds-visual-picker__figure {
+                    box-shadow: 0 2px 2px rgba(0, 0, 0, 0.05);
+                    border: 1px solid rgb(221, 219, 218);
+                }
+                .price-list .slds-grid {
+                    padding-bottom: 15px;
+                }
+                .price-list .slds-card__footer .slds-grid {
+                    padding-bottom: 0px;
+                }
+                .price-list .slds-card__footer {
+                    padding: .75rem 0;
+                    padding-bottom: 0;
+                    text-align: left;
+                    font-size: 100%;
+                }
+                .price-list .slds-form-element__label {
+                    padding: 0;
+                }
+                .slds-scope .slds-text-heading_medium,
+                .slds-scope .slds-text-heading--medium {
+                    color: #1589ee;
+                }
+                .slds-scope .slds-text-longform .slds-text-heading_medium {
+                    color: rgb(8, 7, 7);
+                }
+                .price-list p {
+                    word-break: break-all;
+                }
+                .wrapper-input-icon .slds-input-has-icon span {
+                    position: absolute;
+                    display: block;
+                    line-height: normal;
+                    padding: 15px 10px;
+                    color: #b0adab;
+                    font-size: 0.875rem;
+                }
+                .left {
+                    margin: auto;
+                    text-align: left;
+                }
+                .center {
+                    margin: auto;
+                    text-align: center;
+                }
+                .right {
+                    margin: auto;
+                    text-align: right;
+                }
+                .pb0 {
+                    padding-bottom: 0 !important;
+                }
+                .pb0 .slds-section {
+                    margin-bottom: 0;
+                }
+                .summary-value {
+                    padding: 10px 5px !important;
+                    text-align: right;
+                    position: sticky;
+                    bottom: 50px;
+                    display: block;
+                    z-index: 9999;
+                    background: #FFF;
+                    /* box-shadow: 0 2px 2px rgba(0, 0, 0, 0.05); */
+                    /* border-top: 1px solid rgb(221, 219, 218); */
+                }
+                .summary-value .left {
+                    text-align: left;
+                }
+                .summary-value h3 {
+                    font-weight: 400;
+                    font-size: 1.2rem;
+                }
+                .summary-value p {
+                    font-size: 0.850rem;
+                    color: #AAA;
+                }
+                .slds-scope .slds-tabs_default__nav, 
+                .slds-scope .slds-tabs--default__nav {
+                    overflow-x: auto;
+                    overflow-y: hidden;
+                    white-space: nowrap;
+                    border-bottom: 0;
+                }
+                .slds-scope .slds-tabs_default__nav svg, 
+                .slds-scope .slds-tabs--default__nav svg {
+                    height: 100%;
+                }
+                .slds-scope .slds-tabs_default__item.slds-active:after,
+                .slds-scope .slds-tabs_default__item.slds-is-active:after,
+                .slds-scope .slds-tabs--default__item.slds-active:after,
+                .slds-scope .slds-tabs--default__item.slds-is-active:after {
+                    height: .125rem;
+                }
+                .list-of-dates p {
+                    padding-bottom: 2px;
+                }
+                .slds-scope .slds-progress-ring__content {
+                    color: #1589ee;
+                }
+                .slds-scope .slds-input__button_decrement,
+                .slds-scope .slds-input__button_increment {
+                    bottom: 0 !important;
+                    height: 100% !important;
+                    top: auto !important;
+                    width: 50px !important;
+                    transform: none;
+                }
+                .slds-scope .slds-input__button_decrement {
+                    left: 0;
+                }
+                .slds-scope .slds-input__button_increment {
+                    right: 0;
+                }
+                .slds-scope .slds-combobox__input-entity-icon {
+                    left: 10px;
+                }
+                .slds-checkbox_toggle .slds-form-element__label {
+                    line-height: 1.5rem;
+                    padding: 0;
+                    padding-left: 10px;
+                }
+                .header .slds-form-element__label {
+                    color: #FFF;
+                }
+                .summary .header .sub-title {
+                    padding-bottom: 5px;
+                    padding-top: 5px;
+                }
+                .summary .header .sub-title .slds-checkbox_toggle [type=checkbox]:checked+.slds-checkbox_faux:after,
+                .summary .header .sub-title .slds-checkbox_toggle [type=checkbox]:checked+.slds-checkbox--faux:after,
+                .summary .header .sub-title .slds-checkbox_toggle [type=checkbox]:checked~.slds-checkbox_faux:after,
+                .summary .header .sub-title .slds-checkbox_toggle [type=checkbox]:checked~.slds-checkbox--faux:after,
+                .summary .header .sub-title .slds-checkbox_toggle [type=checkbox]:checked+.slds-checkbox_faux_container .slds-checkbox_faux:after,
+                .summary .header .sub-title .slds-checkbox_toggle [type=checkbox]:checked+.slds-checkbox--faux_container .slds-checkbox--faux:after,
+                .summary .header .sub-title .slds-checkbox--toggle [type=checkbox]:checked+.slds-checkbox_faux:after,
+                .summary .header .sub-title .slds-checkbox--toggle [type=checkbox]:checked+.slds-checkbox--faux:after,
+                .summary .header .sub-title .slds-checkbox--toggle [type=checkbox]:checked~.slds-checkbox_faux:after,
+                .summary .header .sub-title .slds-checkbox--toggle [type=checkbox]:checked~.slds-checkbox--faux:after,
+                .summary .header .sub-title .slds-checkbox--toggle [type=checkbox]:checked+.slds-checkbox_faux_container .slds-checkbox_faux:after,
+                .summary .header .sub-title .slds-checkbox--toggle [type=checkbox]:checked+.slds-checkbox--faux_container .slds-checkbox--faux:after {
+                    display: none;
+                }
+                .hide-input {
+                    width: 0;
+                    height: 0;
+                    line-height: 0;
+                    padding: 0;
+                    font-size: 0;
+                    border: 0;
+                    opacity: 0;
+                    min-height: 0;
+                    overflow: hidden;
+                    visibility: hidden;
+                }
+                .calendar {
+                    width: 100%;
+                    height: 100%;
+                    table-layout: fixed;
+                    text-align: center;
+                    line-height: 40px;
+                    -webkit-user-select: none;
+                    -khtml-user-select: none;
+                    -moz-user-select: none;
+                    -ms-user-select: none;
+                    user-select: none;
+                }
+
+                .calendar .label {
+                    font-size: 14px;
+                    font-weight: 600;
+                }
+
+                .calendar .wrapper {
+                    position: relative;
+                    border-radius: 50%;
+                    background-color: transparent;
+                    height: 40px;
+                    width: 40px;
+                    line-height: 40px;
+                    margin: auto;
+                    cursor: pointer;
+                }
+
+                .calendar .wrapper:not(.disabled) {
+                    background-color: #9EFF9E;
+                }
+
+                .calendar .wrapper.invalid {
+                    background-color: rgb(158, 255, 158, .7);
+                }
+
+                .calendar .wrapper.today {
+                    color: #3C3C3C;
+                    font-weight: 600;
+                }
+
+                .calendar .wrapper.active {
+                    background-color: #1589ee;
+                    color: #FFF !important;
+                }
+
+                .calendar .wrapper:not(.active):hover {
+                    background-color: #72FE72;
+                }
+
+                .calendar .flag {
+                    position: absolute;
+                    top: -10px;
+                    right: -15px;
+                    width: 25px;
+                    height: 25px;
+                    background-color: red;
+                    border-radius: 50%;
+                    border-bottom-left-radius: 0;
+                    font-size: 10px;
+                    line-height: 25px;
+                    color: #FFF;
+                    z-index: 999;
+                }
+
+                .calendar .flag small {
+                    line-height: 25px;
+                    font-size: 8px;
+                }
+
+                .calendar .month {
+                    font-size: 18px;
+                    font-weight: 600;
+                }
+
+                .calendar .month div {
+                    border-radius: 50%;
+                    width: 40px;
+                    height: 40px;
+                    margin: auto;
+                    cursor: pointer;
+                }
+
+                .calendar .month div:hover {
+                    background-color: #EFEFEF;
+                }
+
+                .calendar small {
+                    font-size: 12px;
+                    font-weight: 600;
+                }
+
+                .calendar span {
+                    -webkit-font-smoothing: antialiased;
+                    font-style: normal;
+                    font-variant: normal;
+                    text-rendering: auto;
+                    font-weight: 900;
+                    font-family: 'Fa', sans-serif;
+                    font-size: 16px;
+                    cursor: pointer;
+                }
+
+                .calendar .slds-button__icon {
+                    line-height: 40px;
+                    height: 100%;
+                }
+                .calendar th, .calendar td {
+                    text-align: center;
+                    padding: 2px 0;
+                }
+                .disabled {
+                    opacity: .7;
+                    pointer-events: none;
+                    cursor: auto;
+                }
+                .slds-scope .slds-tabs_default, .slds-scope .slds-tabs--default {
+                    border-bottom: 1px solid rgb(221, 219, 218);
+                    padding: 10px 0;
+                    padding-bottom: 12px;
+                    margin-bottom: 10px;
+                    position: sticky;
+                    top: 87px;
+                    z-index: 9999;
+                }
+                .wrapper-calendar, .wrapper-calendar * {
+                    max-height: 500px;
+                    opacity: 1;
+                    transition: max-height .2s linear, opacity .2s linear, line-height .2s linear, padding .2s linear;
+                }
+                .close-transition {
+                    max-height: 0 !important;
+                    opacity: 0 !important;
+                    line-height: 0 !important;
+                    padding: 0 !important;
+                    font-size: 0 !important;
+                    overflow: hidden;
+                    visibility: hidden;
+                }
+                .slds-grid.list-of-dates {
+                    padding-bottom: 0;
+                }
+                .slds-scope .slds-visual-picker__figure .list-of-dates span {
+                    display: inline-block;
+                    color: #1589ee;
+                }
+                .slds-scope .slds-visual-picker__figure .list-of-dates span svg {
+                    
+                }
+                .strong {
+                    font-weight: 600 !important;
+                }
+                .slds-wrap  .slds-col {
+                    padding: 5px;
+                }
+                .slds-scope .slds-form-element__control {
+                    position: relative !important;
+                }
+                .collapse span {
+                    text-align: center;
+                }
+                .collapse .slds-icon {
+                    height: 20px;
+                    width: 20px;
+                    fill: #1589ee;
+                }
+                .collapse [type=checkbox]:not(:checked) ~ label .collapse-body,
+                .collapse [type=checkbox]:not(:checked) ~ label .collapse-body * {
+                    height: 0 !important;
+                    opacity: 0 !important;
+                    pointer-events: none !important;
+                    font-size: 0 !important;
+                    padding: 0 !important;
+                    line-height: 0 !important;
+                    min-height: 0 !important;
+                    overflow: hidden;
+                    visibility: hidden;
+                }
+                .collapse .slds-col {
+                    padding: 5px 0;
+                }
+                .right .slds-form-element__label {
+                    padding-right: 0 !important;
+                }
+                .slds-scope .slds-section__title-action {
+                    font-weight: 400;
+                }
+                .slds-scope .slds-button_stretch {
+                    font-weight: 400;
+                    min-height: 50px;
+                }
+            </style>
+            <script type="text/javascript">
+                window.URLS = {
+                    shoppingCartPrototypeAppHeader:         "{!URLFOR($Resource.ShoppingCartPrototypeAppHeader)}",
+                    shoppingCartPrototypeAppProductList:    "{!URLFOR($Resource.ShoppingCartPrototypeAppProductList)}",
+                    shoppingCartPrototypeAppCart:           "{!URLFOR($Resource.ShoppingCartPrototypeAppCart)}",
+                    shoppingCartPrototypeAppShip:           "{!URLFOR($Resource.ShoppingCartPrototypeAppShip)}",
+                    ShoppingCartPrototypeAppSummary:        "{!URLFOR($Resource.ShoppingCartPrototypeAppSummary)}",
+                }
+            </script>
+            <apex:includeScript value="{! $Resource.Angular }"/>
+            <apex:includeScript value="{! $Resource.AngularRoute }"/>
+            <apex:includeScript value="{! $Resource.ShoppingCartPrototypeApp }"/>
+        </head>
+        
+        <body>
+            <div class="app {{containerClass}}" ng-controller="ShoppingCtrl as appCtrl">
+                <header class="header sticky">
+                    <table>
+                        <tr>
+                            <td ng-click="this[step.actionBackStep()]">
+                                <span class="slds-icon_container slds-icon-utility-back" title="Description of icon when needed">
+                                    <svg class="slds-icon slds-current-color" aria-hidden="true">
+                                        <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="{!URLFOR($Asset.SLDS, 'assets/icons/utility-sprite/svg/symbols.svg#back')}"></use>
+                                    </svg>
+                                    <span class="slds-assistive-text">Description of icon when needed</span>
+                                </span>
+                            </td>
+                            <td class="title">
+                                <span ng-bind-html="trustAsHtml(step.title)"></span>
+                            </td>
+                            <td rowspan="2">
+                                <div class="slds-progress-ring slds-progress-ring_active-step slds-progress-ring_large" ng-if="step">
+                                    <div class="slds-progress-ring__progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="33">
+                                        <svg viewBox="-1 -1 2 2">
+                                            <path class="slds-progress-ring__path" id="slds-progress-ring-path-22" d="{{step.coords.r}}"></path>
+                                        </svg>
+                                    </div>
+                                    <div class="slds-progress-ring__content">{{step.indicator}}</div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td></td>
+                            <td class="sub-title">
+                                <div ng-show="containerClass < ' '">
+                                    <span ng-bind-html="trustAsHtml(step.nextTitle)"></span>
+                                </div>
+                                <div ng-show="containerClass > ' '">
+                                    <div class="slds-form-element">
+                                        <label class="slds-checkbox_toggle slds-grid">
+                                            <input type="checkbox" name="checkbox-toggle-6" value="checkbox-toggle-6" aria-describedby="checkbox-toggle-6" ng-model="summaryVision" />
+                                            <span id="checkbox-toggle-6" class="slds-checkbox_faux_container" aria-live="assertive">
+                                                <span class="slds-checkbox_faux"></span>
+                                                <span class="slds-checkbox_on"></span>
+                                                <span class="slds-checkbox_off"></span>
+                                            </span>
+                                            <span class="slds-form-element__label slds-m-bottom_none">{{summaryVision ? 'Data x Produto' : 'Produto x Data'}}</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </td>
+                            <td></td>
+                        </tr>
+                    </table>
+                </header>
+                <div class="container" ng-view="true"></div>
+                <footer class="footer sticky" ng-click="this[step.actionNextStep()]">
+                    <table>
+                        <tr>
+                            <td></td>
+                            <td class="action">
+                                <span ng-bind-html="trustAsHtml(step.actionNextStepText)"></span>
+                            </td>
+                            <td></td>
+                        </tr>
+                    </table>
+                </footer>
+            </div>
+        </body>
+    </html>
+</apex:page>

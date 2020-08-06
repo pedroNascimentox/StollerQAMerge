@@ -1,0 +1,206 @@
+<apex:page standardController="Opportunity" extensions="SendOpportunityPDFController" showheader="false" sidebar="false">
+
+    <apex:includeScript value="{! $Resource.SweetalertJs }" />
+    <apex:includeScript value="{! $Resource.PromisePolyfill }" />
+    <apex:stylesheet value="{!$Resource.SweetalertCss}" />
+    
+    <style>
+        @media screen and (min-width: 600px) {
+            .swal2-show {
+                border: 1px solid #DDD;
+            }
+        }
+    
+        .swal2-container.swal2-shown {
+            background-color: transparent;
+        }
+    
+        .lds-wrapper {
+            position: fixed;
+            /* background-color: rgba(0, 0, 0, 0.2); */
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            margin: auto;
+            z-index: 999;
+            pointer-events: none;
+        }
+    
+        .lds-wrapper~* {
+            pointer-events: none;
+        }
+    
+        .lds-wrapper td {
+            vertical-align: middle;
+        }
+    
+        .lds-spinner {
+            color: '#FFF';
+            display: inline-block;
+            position: relative;
+            width: 64px;
+            height: 64px;
+        }
+    
+        .lds-spinner div {
+            transform-origin: 32px 32px;
+            animation: lds-spinner 1.2s linear infinite;
+        }
+    
+        .lds-spinner div:after {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 3px;
+            left: 29px;
+            width: 5px;
+            height: 14px;
+            border-radius: 20%;
+            background: #009CDB;
+        }
+    
+        .lds-spinner div:nth-child(1) {
+            transform: rotate(0deg);
+            animation-delay: -1.1s;
+        }
+    
+        .lds-spinner div:nth-child(2) {
+            transform: rotate(30deg);
+            animation-delay: -1s;
+        }
+    
+        .lds-spinner div:nth-child(3) {
+            transform: rotate(60deg);
+            animation-delay: -0.9s;
+        }
+    
+        .lds-spinner div:nth-child(4) {
+            transform: rotate(90deg);
+            animation-delay: -0.8s;
+        }
+    
+        .lds-spinner div:nth-child(5) {
+            transform: rotate(120deg);
+            animation-delay: -0.7s;
+        }
+    
+        .lds-spinner div:nth-child(6) {
+            transform: rotate(150deg);
+            animation-delay: -0.6s;
+        }
+    
+        .lds-spinner div:nth-child(7) {
+            transform: rotate(180deg);
+            animation-delay: -0.5s;
+        }
+    
+        .lds-spinner div:nth-child(8) {
+            transform: rotate(210deg);
+            animation-delay: -0.4s;
+        }
+    
+        .lds-spinner div:nth-child(9) {
+            transform: rotate(240deg);
+            animation-delay: -0.3s;
+        }
+    
+        .lds-spinner div:nth-child(10) {
+            transform: rotate(270deg);
+            animation-delay: -0.2s;
+        }
+    
+        .lds-spinner div:nth-child(11) {
+            transform: rotate(300deg);
+            animation-delay: -0.1s;
+        }
+    
+        .lds-spinner div:nth-child(12) {
+            transform: rotate(330deg);
+            animation-delay: 0s;
+        }
+    
+        @keyframes lds-spinner {
+            0% {
+                opacity: 1;
+            }
+    
+            100% {
+                opacity: 0;
+            }
+        }
+    </style>
+
+    <script type="text/javascript" src='/canvas/sdk/js/publisher.js'></script>
+    <script>
+
+        Sfdc.canvas.publisher.resize({ height: "400px" });
+
+        window.onload = function () {
+            Visualforce.remoting.Manager.invokeAction(
+                '{!$RemoteAction.SendOpportunityPDFController.send}',
+                '{!Opportunity.Id}',
+                function (result, event) {
+                    debugger;
+                    if (result.hasError === false) {
+                        preloader(false);
+                        defaultCatch('Arquivo enviado com sucesso.', 'Sucesso', 'success');
+                    } else if (result.hasError === true) {
+                        preloader(false);
+                        defaultCatch(result.errorMessage, 'Erro', 'warning');
+                    } /*else if (event.type !== 'exception') {
+                        preloader(false);
+                        defaultCatch('FATAL ERROR', event.type + ' - ' + event.message + ' Contate o Administrador.', 'error');
+                    }*/
+                },
+                {escape: true}
+            );
+        }
+
+        function preloader(show, message, showMessage) {
+            if (typeof show == 'undefined') {
+                show = true;
+            }
+            if (typeof showMessage == 'undefined') {
+                showMessage = true;
+            }
+            if (typeof message == 'undefined') {
+                message = '';
+            }
+            if (show) {
+                if (message > ' ' && showMessage) {
+                    toastTop.fire({
+                        type: 'info',
+                        title: message
+                    });
+                }
+                if (typeof document.getElementsByClassName('lds-wrapper')[0] == 'undefined') {
+                    var loader = document.createElement('table');
+                    loader.className = 'lds-wrapper';
+                    loader.innerHTML += '<tr><td><div class="lds-spinner"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></td></tr>';
+                    document.getElementsByTagName('body')[0].insertBefore(loader, document.getElementsByTagName('body')[0].firstChild);
+                }
+            } else {
+                if (typeof document.getElementsByClassName('lds-wrapper')[0] != 'undefined') {
+                    document.getElementsByTagName('body')[0].removeChild(document.getElementsByClassName('lds-wrapper')[0]);
+                }
+            }
+        }
+
+        function defaultCatch(message, title, type) {
+            Swal.fire({
+                allowEscapeKey: false,
+                allowOutsideClick: false,
+                title: title,
+                html: '<p>' + message + '</p>',
+                type: type,
+                // confirmButtonColor: '#3085d6',
+                // confirmButtonText: 'Fechar'
+            }).then(function (result) {
+                Sfdc.canvas.publisher.publish({ name: "publisher.close", payload: { refresh: "true" } });
+            });
+            return false;
+        }
+        
+    </script>
+
+</apex:page>

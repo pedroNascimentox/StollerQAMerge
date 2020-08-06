@@ -1,0 +1,79 @@
+<apex:component controller="EmailApprovalController" access="global">
+    <apex:attribute name="oppRecord" type="Opportunity" description="" required="required" assignTo="{!opp}"/>
+    <apex:attribute name="userRecord" type="User" description="" required="required" assignTo="{!u}"/>
+    
+    <p style="font-size:16px;margin:0px 0px 15px 0px;display:block">Prezado(a) {!userRecord.Name},</p>
+    <p style="font-size:16px;margin:0px 0px 15px 0px;display:block">O RTV <strong>{!oppRecord.NomeRTV__c}</strong>, está solicitando a aprovação para os descontos aplicados nos itens da oportunidade <strong>{!oppRecord.NumeroOportunidade__c}</strong>.</p>
+    <p style="font-size:16px;margin:0px 0px 10px 0px;display:block">
+        <strong>Cliente: </strong>{!oppRecord.Account.Name}
+    </p>
+    <p style="font-size:16px;margin:0px 0px 10px 0px;display:block">
+        <strong>RTV: </strong>{!oppRecord.NomeRTV__c}
+    </p>
+    <p style="font-size:16px;margin:0px 0px 10px 0px;display:block">
+        <strong>Tipo de Ordem: </strong>{!oppRecord.TipoOrdem__c}
+    </p>
+    <p style="font-size:16px;margin:0px 0px 10px 0px;{!IF(oppRecord.MotivoOrdem__c != null, 'display:block;', 'display:none;')}">
+        <strong>Motivo da Ordem: </strong>{!oppRecord.MotivoOrdem__c}
+    </p>
+    <p style="font-size:16px;margin:0px 0px 10px 0px;{!IF(oppRecord.Campanha__c != null, 'display:block;', 'display:none;')}">
+        <strong>Campanha: </strong>{!oppRecord.Campanha__r.Descricao__c}
+    </p>
+    <p style="font-size:16px;display:block;{!IF(oppRecord.DataInicioJuros__c != null, 'margin:0px 0px 10px 0px;', 'margin:0px 0px 20px 0px;')}">
+        <strong>Condição de Pagamento: </strong>{!oppRecord.CondicaoPagamento__r.Descricao__c}
+    </p>
+    <p style="font-size:16px;margin:0px 0px 10px 0px;{!IF(oppRecord.DataInicioJuros__c != null, 'display:block;', 'display:none;')}">
+        <strong>Data de início de Juros: </strong>{!formattedDate}
+    </p>
+
+    <table>
+        <tr>
+            <th style="border-width: 1px;padding: 6px 12px;border-style: solid;border-color: #000000;background-color: #F2F2F2;text-align:
+            center;margin: auto;">Produto</th>
+            <th style="border-width: 1px;padding: 6px 12px;border-style: solid;border-color: #000000;background-color: #F2F2F2;text-align:
+            center;margin: auto;">Qde</th>
+            <th style="border-width: 1px;padding: 6px 12px;border-style: solid;border-color: #000000;background-color: #F2F2F2;text-align:
+            center;margin: auto;">Preço de Venda</th>
+            <th style="border-width: 1px;padding: 6px 12px;border-style: solid;border-color: #000000;background-color: #F2F2F2;text-align:
+            center;margin: auto;">Desconto/Acréscimo</th>
+            <th style="border-width: 1px;padding: 6px 12px;border-style: solid;border-color: #000000;background-color: #F2F2F2;text-align:
+            center;margin: auto;">Desc Excedente</th>
+        </tr>
+        <apex:repeat value="{!lineItemList}" var="item" id="theRepeat">
+            <tr>
+                <td style="border-width: 1px;padding: 6px 12px;border-style: solid;border-color: #000000;background-color: #F2F2F2;text-align:
+                center;margin: auto;">
+                     {!item.ProductName}
+                </td>
+                <td style="border-width: 1px;padding: 6px 12px;border-style: solid;border-color: #000000;background-color: #F2F2F2;text-align:
+                center;margin: auto;">
+                     {!item.Quantity}
+                </td>
+                <td style="border-width: 1px;padding: 6px 12px;border-style: solid;border-color: #000000;background-color: #F2F2F2;text-align:
+                center;margin: auto;">
+                    <apex:outputText rendered="{!oppRecord.Moeda__c == 'BRL'}" style="font-size: 14px" value="R$ {!item.PrecoVendasJurosBRLUSD}"/>
+                    <apex:outputText rendered="{!oppRecord.Moeda__c == 'USD'}" style="font-size: 14px" value="US$ {!item.PrecoVendasJurosBRLUSD}"/>
+                </td>
+                <td style="border-width: 1px;padding: 6px 12px;border-style: solid;border-color: #000000;background-color: #F2F2F2;text-align:
+                center;margin: auto;">
+                     {!item.Discount}%
+                </td>
+                <td style="border-width: 1px;padding: 6px 12px;border-style: solid;border-color: #000000;background-color: #F2F2F2;text-align:
+                center;margin: auto;">
+                    <apex:outputText rendered="{!item.DescontoExcedente == '0'}" style="font-size: 14px" value="{!item.DescontoExcedente}%"/>
+                    <apex:outputText rendered="{!item.DescontoExcedente != '0'}" style="font-size: 14px;color:red;" value="{!item.DescontoExcedente}%"/>
+                </td>
+            </tr>
+        </apex:repeat>
+    </table>
+    
+    <p style="font-size:16px;margin:10px 0px 10px 0px;display:block">
+        <strong>Valor total com IPI: </strong>{!valueWithIPI}
+    </p>
+    <p style="font-size:16px;margin:0px 0px 10px 0px;{!IF(oppRecord.ObservacaoInterna__c != null, 'display:block;', 'display:none;')}">
+        <strong>Observações: </strong>{!oppRecord.ObservacaoInterna__c}
+    </p>
+    <br/>
+    <apex:outputLink rendered="{!approval != null}" style="font-size: 16px;margin:0px 0px 10px 0px;display:block;" value="{!approval}">Link da Aprovação</apex:outputLink>
+    
+</apex:component>

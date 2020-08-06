@@ -1,0 +1,159 @@
+<apex:component controller="CaseClosedForQualityReviewController" access="global">
+    <apex:attribute name="relatedCase" type="Case" description="" required="required" assignTo="{!caseRecord}" />
+    <apex:attribute name="userRecord" type="User" description="" required="required" />
+    <style>
+        html,
+        body {
+            font-family: Arial, Helvetica, sans-serif !important;
+            font-size: 12px !important;
+        }
+
+        .panel-grid-td {
+            text-align: center !important;
+        }
+    </style>
+    <div align="right">
+        <img src="https://www.stoller.com.br/wp-content/uploads/2019/11/logo-stoller.png" height="80" width="80" />
+    </div>
+    <p>Prezado(a),</p>
+    <br/>
+    <br/>
+    <p>Segue os dados do processo de reclamação
+        <b>{!relatedCase.caseNumber}</b>, emitido para o cliente
+        <b>{!relatedCase.Account.Name}</b>
+    </p>
+    <br/>
+    <b>Motivo da Reclamação: </b><apex:outputText value="{!reasonLabel}"/>
+    <br/>
+    <b>Problema: </b> {!relatedCase.Problemas__c}
+    <br/>
+    <b>Território: </b>{!relatedCase.Territorio__r.NomeTerritorio__c}
+    <br/>
+    <b>Data de criação: </b>
+    <apex:outputField value="{!relatedCase.createdDate}"></apex:outputField>
+    <br/>
+    <b>Descrição do problema: </b>{!relatedCase.Description}
+    <br/>
+    <br/>
+    <br/>
+
+    <apex:panelGrid columns="3" id="theGrid" frame="box" rules="all" border="1" style="border:2px solid black" rowClasses="panel-grid-td"
+        cellpadding="8px" cellspacing="8px">
+        <apex:outputPanel style="text-align:center">
+            <apex:outputText value="Nome do Produto" />
+        </apex:outputPanel>
+        <apex:outputPanel style="text-align:center">
+            <apex:outputText value="Quantidade" />
+        </apex:outputPanel>
+        <apex:outputPanel style="text-align:center">
+            <apex:outputText value="Lote" />
+        </apex:outputPanel>
+        <apex:outputPanel style="text-align:center" rendered="{!relatedCase.Quantidade__c != null && !(relatedCase.Lote__c == null)}">
+            <apex:outputText rendered="{!relatedCase.Quantidade__c != null && !(relatedCase.Lote__c == null)}" value="{!relatedCase.NomeProduto__r.Name}"
+            />
+        </apex:outputPanel>
+        <apex:outputPanel style="text-align:center" rendered="{!relatedCase.Quantidade__c != null && !(relatedCase.Lote__c == null)}">
+            <apex:outputText rendered="{!relatedCase.Quantidade__c != null && !(relatedCase.Lote__c == null)}" value="{!relatedCase.Quantidade__c}"
+            />
+        </apex:outputPanel>
+        <apex:outputPanel style="text-align:center" rendered="{!relatedCase.Quantidade__c != null && !(relatedCase.Lote__c == null)}">
+            <apex:outputText rendered="{!relatedCase.Quantidade__c != null && !(relatedCase.Lote__c == null)}" value="{!relatedCase.Lote__c}"
+            />
+        </apex:outputPanel>
+        <apex:outputPanel style="text-align:center" rendered="{!relatedCase.Quantidade_Lote_2__c != null && !(relatedCase.Lote_2__c == null)}">
+            <apex:outputText rendered="{!relatedCase.Quantidade_Lote_2__c != null && !(relatedCase.Lote_2__c == null)}" value="{!relatedCase.NomeProduto__r.Name}"
+            />
+        </apex:outputPanel>
+        <apex:outputPanel style="text-align:center" rendered="{!relatedCase.Quantidade_Lote_2__c != null && !(relatedCase.Lote_2__c == null)}">
+            <apex:outputText rendered="{!relatedCase.Quantidade_Lote_2__c != null && !(relatedCase.Lote_2__c == null)}" value="{!relatedCase.Quantidade_Lote_2__c}"
+            />
+        </apex:outputPanel>
+        <apex:outputPanel style="text-align:center" rendered="{!relatedCase.Quantidade_Lote_2__c != null && !(relatedCase.Lote_2__c == null)}">
+            <apex:outputText rendered="{!relatedCase.Quantidade_Lote_2__c != null && !(relatedCase.Lote_2__c == null)}" value="{!relatedCase.Lote_2__c}"
+            />
+        </apex:outputPanel>
+        <apex:outputPanel style="text-align:center" rendered="{!relatedCase.Quantidade_Lote_3__c != null && !(relatedCase.Lote_3__c == null)}">
+            <apex:outputText rendered="{!relatedCase.Quantidade_Lote_3__c != null && !(relatedCase.Lote_3__c == null)}" value="{!relatedCase.NomeProduto__r.Name}"
+            />
+        </apex:outputPanel>
+        <apex:outputPanel style="text-align:center" rendered="{!relatedCase.Quantidade_Lote_3__c != null && !(relatedCase.Lote_3__c == null)}">
+            <apex:outputText rendered="{!relatedCase.Quantidade_Lote_3__c != null && !(relatedCase.Lote_3__c == null)}" value="{!relatedCase.Quantidade_Lote_3__c}"
+            />
+        </apex:outputPanel>
+        <apex:outputPanel style="text-align:center" rendered="{!relatedCase.Quantidade_Lote_3__c != null && !(relatedCase.Lote_3__c == null)}">
+            <apex:outputText rendered="{!relatedCase.Quantidade_Lote_3__c != null && !(relatedCase.Lote_3__c == null)}" value="{!relatedCase.Lote_3__c}"
+            />
+        </apex:outputPanel>
+        <apex:outputPanel style="text-align:center" rendered="{!relatedCase.Quantidade_Lote_4__c != null && !(relatedCase.Lote_4__c == null)}">
+            <apex:outputText rendered="{!relatedCase.Quantidade_Lote_4__c != null && !(relatedCase.Lote_4__c == null)}" value="{!relatedCase.NomeProduto__r.Name}"
+            />
+        </apex:outputPanel>
+        <apex:outputPanel style="text-align:center" rendered="{!relatedCase.Quantidade_Lote_4__c != null && !(relatedCase.Lote_4__c == null)}">
+            <apex:outputText rendered="{!relatedCase.Quantidade_Lote_4__c != null && !(relatedCase.Lote_4__c == null)}" value="{!relatedCase.Quantidade_Lote_4__c}"
+            />
+        </apex:outputPanel>
+        <apex:outputPanel style="text-align:center" rendered="{!relatedCase.Quantidade_Lote_4__c != null && !(relatedCase.Lote_4__c == null)}">
+            <apex:outputText rendered="{!relatedCase.Quantidade_Lote_4__c != null && !(relatedCase.Lote_4__c == null)}" value="{!relatedCase.Lote_4__c}"
+            />
+        </apex:outputPanel>
+        <apex:outputPanel style="text-align:center" rendered="{!relatedCase.Quantidade_Lote_5__c != null && !(relatedCase.Lote_5__c == null)}">
+            <apex:outputText rendered="{!relatedCase.Quantidade_Lote_5__c != null && !(relatedCase.Lote_5__c == null)}" value="{!relatedCase.NomeProduto__r.Name}"
+            />
+        </apex:outputPanel>
+        <apex:outputPanel style="text-align:center" rendered="{!relatedCase.Quantidade_Lote_5__c != null && !(relatedCase.Lote_5__c == null)}">
+            <apex:outputText rendered="{!relatedCase.Quantidade_Lote_5__c != null && !(relatedCase.Lote_5__c == null)}" value="{!relatedCase.Quantidade_Lote_5__c}"
+            />
+        </apex:outputPanel>
+        <apex:outputPanel style="text-align:center" rendered="{!relatedCase.Quantidade_Lote_5__c != null && !(relatedCase.Lote_5__c == null)}">
+            <apex:outputText rendered="{!relatedCase.Quantidade_Lote_5__c != null && !(relatedCase.Lote_5__c == null)}" value="{!relatedCase.Lote_5__c}"
+            />
+        </apex:outputPanel>
+    </apex:panelGrid>
+    <br/>
+    <br/>
+    <b>CHECK LIST</b>:
+    <br/>
+    <b>Reclamação verificada no local?</b> {!relatedCase.Reclama_o_verificada_no_local__c}
+    <br/>
+    <b>O local é coberto, seco e ventilado:</b> {!relatedCase.O_local_coberto_seco_e_ventilado__c}
+    <br/>
+    <b>A embalagem está amassada?</b> {!relatedCase.A_embalagem_est_amassada__c}
+    <br/>
+    <b>A embalagem está sem rótulo?</b> {!relatedCase.A_embalagem_est_sem_r_tulo__c}
+    <br/>
+    <b>Qnt. minima por lote verificada?</b> {!relatedCase.Qnt_minima_por_lote_verificada_5_bd__c}
+    <br/>
+    <b>Empilhamento máximo adequado?</b> {!relatedCase.Empilhamento_m_ximo_adequado__c}
+    <br/>
+    <b>A embalagem está vazando?</b> {!relatedCase.A_embalagem_est_vazando__c}
+    <br/>
+    <br/>
+    <b>PROCEDIMENTO DE RECLAMAÇÕES</b>
+    <table style="border-collapse: collapse;width: 50%;border: 2px solid #dddddd;border-color: black;text-align: center;padding: 8px;">
+        <tr>
+            <th style="border: 1px solid #dddddd;border-color: black;text-align: center;padding: 8px;">Número do procedimento</th>
+            <th style="border: 1px solid #dddddd;border-color: black;text-align: center;padding: 8px;">Procedimento de Reclamação</th>
+            <th style="border: 1px solid #dddddd;border-color: black;text-align: center;padding: 8px;">Nº Pedido</th>
+            <th style="border: 1px solid #dddddd;border-color: black;text-align: center;padding: 8px;">Produto</th>
+            <th style="border: 1px solid #dddddd;border-color: black;text-align: center;padding: 8px;">Emabalagem</th>
+            <th style="border: 1px solid #dddddd;border-color: black;text-align: center;padding: 8px;">Quantidade</th>
+            <th style="border: 1px solid #dddddd;border-color: black;text-align: center;padding: 8px;">Valor Unitário</th>
+            <th style=" border: 1px solid #dddddd;border-color: black;text-align: center;padding: 8px;">Valor Total</th>
+        </tr>
+        <apex:repeat value="{!associacaoPedidoReclamacaoList}" var="associationItem" id="theRepeat">
+            <tr>
+                <td style="border: 1px solid #dddddd;border-color: black;text-align: center;padding: 8px;">{!associationItem.Name}</td>
+                <td style="border: 1px solid #dddddd;border-color: black;text-align: center;padding: 8px;">{!associationItem.Procedimento_de_Reclama_o__c}</td>
+                <td style="border: 1px solid #dddddd;border-color: black;text-align: center;padding: 8px;">{!associationItem.N_Pedido__c}</td>
+                <td style="border: 1px solid #dddddd;border-color: black;text-align: center;padding: 8px;">{!associationItem.Produto__r.name}</td>
+                <td style="border: 1px solid #dddddd;border-color: black;text-align: center;padding: 8px;">{!associationItem.Embalagem__c}</td>
+                <td style="border: 1px solid #dddddd;border-color: black;text-align: center;padding: 8px;">{!associationItem.Quantidade__c}</td>
+                <td style="border: 1px solid #dddddd;border-color: black;text-align: center;padding: 8px;">{!associationItem.Valor_unit_rio__c}</td>
+                <td style="border: 1px solid #dddddd;border-color: black;text-align: center;padding: 8px;">{!associationItem.Valor_Total__c}</td>
+            </tr>
+        </apex:repeat>
+    </table>
+    <br/>
+    <br/>Atenciosamente
+
+</apex:component>

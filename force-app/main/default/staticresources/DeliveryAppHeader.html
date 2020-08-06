@@ -1,0 +1,237 @@
+<div class="wrapper-products">
+    <div class="slds-grid">
+        <div class="slds-col slds-size_12-of-12">
+            <div class="slds-section slds-is-open">
+                <h3 class="slds-section__title slds-theme_shade dblock section-opp">
+                    <div class="slds-grid slds-wrap">
+                        <div class="slds-col slds-size_12-of-12">
+                            <span class="slds-p-horizontal_small" title="{{base.currOpp.name}}">
+                                {{base.currOpp.name}} <small class="slds-p-horizontal_small">{{base.currOpp.selectedAccount.name}}</small>
+                            </span>
+                            <small class="slds-p-horizontal_small dblock">{{base.currOpp.rtvName}}</small>
+                        </div>
+                    </div>
+                </h3>
+                <div aria-hidden="false" class="slds-section__content price-list">
+                    <div class="slds-grid slds-wrap">
+                        <!-- CLIENTE -->
+                        <!-- target-field-name="accountSearchFields()" search-target="accountFields" -->
+                        <!-- filters="filterReceiverAccount()" -->
+                        <div class="slds-col slds-size_1-of-1 slds-large-size_1-of-2">
+                            <sf-lookup search-target="accountFields" placeholder="Buscar Cliente..."
+                                remote-method="DeliveryAppController.searchClientOpp"
+                                ng-model="base.currOpp.selectedAccount" object="Account" label="Cliente"
+                                returned-fields="accountReturnedFields"
+                                icon-path="/apexpages/slds/latest/assets/icons/standard-sprite/svg/symbols.svg#account"
+                                ng-change="updateSelectedAccount()"
+                                filters="filterReceiverAccount()"
+                                subtitle="getAccountSubtitle">
+                            </sf-lookup>
+                        </div>
+                        <div class="slds-col slds-size_1-of-1 slds-large-size_1-of-2 " ng-if="isCustomerService == true"
+                            ng-show="isCustomerService == true && base.currOpp.selectedAccount != null && base.accountTerritories.length > 0">
+                            <sf-lookup placeholder="Buscar Território..." ng-model="base.currOpp.selectedTerritory"
+                                label="Território" required="true" search-target="territoryFields"
+                                values="base.accountTerritories" title="getTerritoryTitle" subtitle="getTerritorySubTitle"
+                                icon-path="/apexpages/slds/latest/assets/icons/standard-sprite/svg/symbols.svg#location">
+                            </sf-lookup>
+                        </div>
+                    </div>
+                    <div class="slds-grid slds-wrap" ng-if="isCustomerService == true">
+                        <div class="slds-col slds-size_1-of-1 slds-large-size_1-of-2 ">
+                            <sf-lookup 
+                                placeholder="Buscar Local de Negócio..."
+                                ng-model="base.currOpp.selectedBusinessPlace" object="LocalNegocio__c"
+                                label="Local de Negócio" 
+                                required="true"
+                                returned-fields="businessPlaceReturnedFields"
+                                subtitle="getBusinessPlaceSubtitle"
+                                search-target="businessPlaceFields"
+                                icon-path="/apexpages/slds/latest/assets/icons/standard-sprite/svg/symbols.svg#service_territory_location"
+                                ng-disabled="!hasAccount()">
+                            </sf-lookup>
+                        </div>
+                    </div>
+                    <div class="slds-grid slds-wrap pb0">
+                        <!-- TIPO DE ORDEM -->
+                        <div class="slds-col slds-size_1-of-1 slds-large-size_1-of-2 ">
+                            <div class="slds-form-element">
+                                <abbr class="slds-required" title="required">* </abbr>
+                                <label class="slds-form-element__label" for="orderTypeInput">Tipo de Ordem</label>
+                                <div class="slds-form-element__control">
+                                    <div class="slds-select_container" ng-show="base.currOpp.orderType.value != 'Bonificação'">
+                                        <select class="slds-select" id="orderTypeInput"
+                                            ng-model="base.currOpp.orderType"
+                                            ng-options="orderType as orderType.label for orderType in base.filteredOrderTypes
+                                            track by orderType.label"
+                                            ng-change="updateOrderType()"></select>
+                                    </div>
+                                    <div class="slds-select_container" ng-show="base.currOpp.orderType.value == 'Bonificação'">
+                                        <input class="slds-select disabled" id="orderTypeInput" disabled="true"
+                                            ng-model="base.currOpp.orderType.label"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="slds-col slds-size_1-of-1 slds-large-size_1-of-2 {{base.currOpp.shipper == null ? 'slds-has-error' : ''}}"
+                            ng-show="base.currOpp.orderType.shipper ||
+                            base.currOpp.orderType.value.indexOf('Remanejamento') > -1">
+                            <sf-lookup placeholder="Buscar Cliente..." ng-model="base.currOpp.shipper"
+                                object="Account" label="Origem Remanejamento" required="true"
+                                search-target="accountFields" returned-fields="accountReturnedFields"
+                                subtitle="getAccountSubtitle"
+                                icon-path="/apexpages/slds/latest/assets/icons/standard-sprite/svg/symbols.svg#account">
+                            </sf-lookup>
+                        </div>
+
+                        <!-- RECEBEDOR DA MERCADORIA -->
+                        <!-- filters="filterReceiverAccount()" -->
+                        <div class="slds-col slds-size_1-of-1 slds-large-size_1-of-2"
+                            ng-show="base.currOpp.orderType.value.indexOf('Conta e Ordem') > -1"
+                            ng-class="base.currOpp.selectedAccount == null ? 'disabled' : ''">
+                            <sf-lookup placeholder="Buscar Cliente..." ng-model="base.currOpp.receiver" 
+                                object="Account" label="Cliente Recebedor"
+                                search-target="accountFields" returned-fields="accountReturnedFields"
+                                subtitle="getAccountSubtitle"
+                                filters="receiverAccountFiltersFunction()"
+                                icon-path="/apexpages/slds/latest/assets/icons/standard-sprite/svg/symbols.svg#account">
+                                >
+                            </sf-lookup>
+                            <div class="slds-notify slds-notify_alert slds-theme_alert-texture slds-theme_warning slds-m-top_xx-small"
+                                role="alert">
+                                <span class="slds-assistive-text">warning</span>
+                                <span class="slds-icon_container slds-icon-utility-warning"
+                                    title="Description of icon when needed">
+                                    <svg class="slds-icon slds-icon_x-small" aria-hidden="true">
+                                        <use
+                                            xlink:href="/apexpages/slds/latest/assets/icons/utility-sprite/svg/symbols.svg#warning">
+                                        </use>
+                                    </svg>
+                                </span>
+                                <h2>Atenção: Todas as programações de itens da oportunidade serão destinadas ao Recebedor selecionado acima</h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slds-grid slds-wrap">
+                        <div class="slds-col slds-size_1-of-1 slds-large-size_1-of-2 ">
+                            <div class="slds-form-element">
+                                <label class="slds-form-element__label" for="delivery-date">Data de Entrega</label>
+                                <div class="slds-form-element__control calendar-form">
+                                    <input type="text" id="delivery-date" class="slds-input"
+                                        ng-model="default.deliveryDateFormated"
+                                        ng-click="this[openCalendar('delivery-date')]" readonly="true" />
+                                    <div
+                                        class="slds-visual-picker slds-visual-picker_vertical {{calendarVisibility['delivery-date'] ? '' : 'close-transition'}}">
+                                        <label for="wrapper-delivery-date">
+                                            <span
+                                                class="slds-visual-picker__figure slds-visual-picker__text slds-align_absolute-left">
+                                                <span>
+                                                    <div id="wrapper-delivery-date" class="wrapper-calendar">
+                                                    </div>
+                                                </span>
+                                            </span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-col slds-size_1-of-1 slds-large-size_1-of-2" ng-show="default.deliveryDate != null">
+                            <div class="slds-form-element btn-form">
+                                <label class="slds-form-element__label">&nbsp;</label>
+                                <div class="slds-form-element__control">
+                                    <button class="slds-button slds-button_neutral" ng-click="this[setDefaultDeliveryDate()]">Aplicar</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="slds-grid">
+        <div class="slds-col slds-size_12-of-12">
+            <div class="slds-section slds-is-open">
+                <h3 class="slds-section__title slds-theme_shade dblock section-opp">
+                    <div class="slds-grid slds-wrap">
+                        <div class="slds-col slds-size_12-of-12">
+                            <span class="slds-p-horizontal_small" title="Produtos">
+                                Produtos <small class="slds-p-horizontal_small">Itens da Oportunidade</small>
+                            </span>
+                        </div>
+                    </div>
+                </h3>
+                <div aria-hidden="false" class="slds-section__content">
+                    <div class="slds-grid slds-wrap">
+                        <div class="slds-col slds-size_1-of-1 slds-large-size_1-of-3 slds-medium-size_1-of-2"
+                            ng-repeat="product in base.currOpp.products | orderBy: 'name'">
+                            <fieldset class="slds-form-element">
+                                <div class="slds-form-element__control">
+                                    <div class="slds-visual-picker slds-visual-picker_vertical">
+                                        <label for="{{product.productId + base.currOpp.id}}">
+                                            <span
+                                                class="slds-visual-picker__figure slds-visual-picker__text slds-align_absolute-left">
+                                                <span>
+                                                    <span
+                                                        class="slds-text-heading_medium slds-m-bottom_x-small">{{product.name}}</span>
+                                                    <span
+                                                        class="slds-text-title slds-m-bottom_x-small">{{product.sku}}</span>
+                                                    <div class="slds-text-title" ng-if="product.recent">
+                                                        <span class="slds-text-title" ng-if="!product.details.show">R$
+                                                            {{formatPrice(product.details.lastSalesPrice)}}</span>
+                                                    </div>
+                                                    <div class="slds-grid slds-wrap">
+                                                        <div class="slds-col slds-size_1-of-2 clear-h list-of-dates">
+                                                            <div class="slds-form-element">
+                                                                <label class="slds-form-element__label"
+                                                                    for="{{product.productId + base.currOpp.id}}">Data</label>
+                                                                <p>{{formatScopeDate(product.deliveryDate)}} <span
+                                                                        ng-show="product.confirmed">
+                                                                        <svg class="slds-button__icon"
+                                                                            aria-hidden="true">
+                                                                            <use
+                                                                                xlink:href="/apexpages/slds/latest/assets/icons/utility-sprite/svg/symbols.svg#check">
+                                                                            </use>
+                                                                        </svg>
+                                                                    </span></p>
+                                                                <small ng-if="base.currOpp.orderType.value == 'Conta e Ordem'">{{product.receiver != null ? product.receiver.name : '&nbsp;'}}</small>
+                                                            </div>
+                                                        </div>
+                                                        <div class="slds-col slds-size_1-of-2 clear-h right">
+                                                            <div class="slds-form-element">
+                                                                <label class="slds-form-element__label"
+                                                                    for="{{product.productId + base.currOpp.id}}">Quantidade</label>
+                                                                <p>{{product.quantity}}</p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </span>
+                                            </span>
+                                            <span class="slds-icon_container slds-visual-picker__text-check">
+                                                <svg class="slds-icon slds-icon-text-check slds-icon_x-small"
+                                                    aria-hidden="true">
+                                                    <use
+                                                        xlink:href="/apexpages/slds/latest/assets/icons/utility-sprite/svg/symbols.svg#check">
+                                                    </use>
+                                                </svg>
+                                            </span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </fieldset>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="slds-spinner" ng-show="isLoading">
+    <div class="slds-spinner_container">
+        <div role="status" class="slds-spinner slds-spinner_medium slds-spinner_brand">
+            <span class="slds-assistive-text">Loading</span>
+            <div class="slds-spinner__dot-a"></div>
+            <div class="slds-spinner__dot-b"></div>
+        </div>
+    </div>
+</div>

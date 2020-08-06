@@ -1,0 +1,7 @@
+<apex:page standardController="AlteracaoDataEntregaItem__c">
+    <script>
+        window.onload = function(){
+            window.location.replace('/lightning/n/AppAlteracaoEntrega');
+        }    
+    </script>
+</apex:page>

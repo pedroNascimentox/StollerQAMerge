@@ -1,0 +1,16 @@
+<aura:component implements="flexipage:availableForRecordHome,force:hasRecordId"  access="global" controller="VisitController" >
+	<aura:attribute access="global" name="checkInLabel" type="String" default="Check-In" description="Rótulo utilizado no botão exibido na página do registro."/>
+    <aura:attribute access="global" name="checkOutLabel" type="String" default="Check-Out" description="Rótulo utilizado no botão exibido na página do registro."/>
+    <aura:attribute name="processing" type="Boolean" default="false" />
+    
+    <div class="button-group">
+        <lightning:button label="{!v.checkInLabel}" title="{!v.checkInLabel}"   onclick="{!c.checkIn}"/>
+        <lightning:button label="{!v.checkOutLabel}" title="{!v.checkOutLabel}" onclick="{!c.checkOut}"/>
+    </div>
+    
+    <aura:if isTrue="{! v.processing }">
+        <lightning:spinner alternativeText="Carregando..." />
+    </aura:if>
+    
+
+</aura:component>

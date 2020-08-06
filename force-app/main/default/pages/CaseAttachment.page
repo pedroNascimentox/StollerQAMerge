@@ -1,0 +1,12 @@
+<apex:page controller="CaseAttachmentController" applyHtmlTag="false" applyBodyTag="false" showHeader="false" sidebar="false">
+    <html>
+        <head>
+            <style type="text/css">
+                @page {
+                    size: landscape;
+                }
+            </style>
+        </head>
+        <apex:outputText value="{!CaseImagens}" escape="false" />
+    </html>
+</apex:page>

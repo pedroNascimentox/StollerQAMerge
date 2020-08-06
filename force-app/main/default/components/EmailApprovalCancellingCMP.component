@@ -1,0 +1,92 @@
+<apex:component controller="EmailApprovalCancellingController" access="global">
+    <apex:attribute name="cancellingRecord" type="SolicitacaoCancelamento__c" description="" required="required" assignTo="{!canc}"/>
+    <apex:attribute name="userRecord" type="User" description="" required="required" assignTo="{!u}"/>
+    <apex:attribute name="status" type="String" description="" default="" />
+    <apex:attribute name="showStatus" type="Boolean" description="" default="false" />
+    
+    <p style="font-size:16px;margin:0px 0px 15px 0px;display:block">Prezado(a) <strong>{!userRecord.Name}</strong>,</p>
+    <div style="{!IF(!showStatus, 'display:block;', 'display:none;')}">
+        <p style="font-size:16px;margin:0px 0px 15px 0px;{!IF(!showStatus, 'display:block;', 'display:none;')}"><apex:outputText rendered="{!!showStatus}">Segue o processo de cancelamento de venda para sua aprovação.</apex:outputText></p>
+    </div>
+    <div style="{!IF(showStatus, 'display:block;', 'display:none;')}">
+        <p style="font-size:16px;margin:0px 0px 15px 0px;{!IF(showStatus, 'display:block;', 'display:none;')}"><apex:outputText rendered="{!showStatus}">O processo de Cancelamento nº <strong>{!cancellingRecord.Name}</strong> foi <strong>{!status}</strong>.</apex:outputText></p>
+    </div>
+    <p style="font-size:16px;margin:0px 0px 10px 0px;display:block">
+        <strong>Cliente: </strong>{!cancellingRecord.EmissorOrdem__r.Name}
+    </p>
+    <p style="font-size:16px;margin:0px 0px 10px 0px;display:block">
+        <strong>RTV: </strong>{!cancellingRecord.NomeRTV__c}
+    </p>
+    <p style="font-size:16px;margin:0px 0px 10px 0px;display:block">
+        <strong>Regional: </strong>{!cancellingRecord.Oportunidade__r.RegionalNome__c}
+    </p>
+    <p style="font-size:16px;margin:0px 0px 10px 0px;display:block">
+        <strong>Tipo de Ordem: </strong>{!cancellingRecord.TipoOrdem__c}
+    </p>
+    <p style="font-size:16px;margin:0px 0px 10px 0px;{!IF(cancellingRecord.MotivoCancelamento__c != null, 'display:block;', 'display:none;')}">
+        <strong>Motivo do Cancelamento: </strong>{!cancellingRecord.MotivoCancelamento__c}
+    </p>
+    <p style="font-size:16px;margin:0px 0px 10px 0px;{!IF(cancellingRecord.Descricao__c != null, 'display:block;', 'display:none;')}">
+        <strong>Descrição: </strong>{!cancellingRecord.Descricao__c}
+    </p>
+    <p style="font-size:16px;margin:0px 0px 10px 0px;display:block">
+        <strong>Nr. da Oportunidade: </strong>{!cancellingRecord.Oportunidade__r.Name}
+    </p>
+    <p style="font-size:16px;margin:0px 0px 10px 0px;{!IF(cancellingRecord.NumeroOrdemSAP__c != null, 'display:block;', 'display:none;')}">
+        <strong>Nr. da Ordem de Venda: </strong>{!cancellingRecord.NumeroOrdemSAP__c}
+    </p>
+    <p style="font-size:16px;margin:0px 0px 15px 0px;display:block">
+        <strong>Moeda: </strong>{!cancellingRecord.Moeda__c}
+    </p>
+
+    <table>
+        <tr>
+            <th style="border-width: 1px;padding: 6px 12px;border-style: solid;border-color: #000000;background-color: #F2F2F2;text-align:
+            center;margin: auto;">Produto</th>
+            <th style="border-width: 1px;padding: 6px 12px;border-style: solid;border-color: #000000;background-color: #F2F2F2;text-align:
+            center;margin: auto;">Emb</th>
+            <th style="border-width: 1px;padding: 6px 12px;border-style: solid;border-color: #000000;background-color: #F2F2F2;text-align:
+            center;margin: auto;">Qde</th>
+            <th style="border-width: 1px;padding: 6px 12px;border-style: solid;border-color: #000000;background-color: #F2F2F2;text-align:
+            center;margin: auto;">Preço de Venda</th>
+            <th style="border-width: 1px;padding: 6px 12px;border-style: solid;border-color: #000000;background-color: #F2F2F2;text-align:
+            center;margin: auto;">Valor total</th>
+        </tr>
+        <apex:repeat value="{!lineItemList}" var="item" id="theRepeat">
+            <tr>
+                <td style="border-width: 1px;padding: 6px 12px;border-style: solid;border-color: #000000;background-color: #F2F2F2;text-align:
+                center;margin: auto;">
+                     {!item.ProductName}
+                </td>
+                <td style="border-width: 1px;padding: 6px 12px;border-style: solid;border-color: #000000;background-color: #F2F2F2;text-align:
+                center;margin: auto;">
+                     {!item.Packing}
+                </td>
+                <td style="border-width: 1px;padding: 6px 12px;border-style: solid;border-color: #000000;background-color: #F2F2F2;text-align:
+                center;margin: auto;">
+                     {!item.Quantity}
+                </td>
+                <td style="border-width: 1px;padding: 6px 12px;border-style: solid;border-color: #000000;background-color: #F2F2F2;text-align:
+                center;margin: auto;">
+                    <apex:outputText rendered="{!cancellingRecord.Moeda__c == 'BRL'}" style="font-size: 14px" value="R$ {!item.PrecoVendasJurosBRLUSD}"/>
+                    <apex:outputText rendered="{!cancellingRecord.Moeda__c == 'USD'}" style="font-size: 14px" value="US$ {!item.PrecoVendasJurosBRLUSD}"/>
+                </td>
+                <td style="border-width: 1px;padding: 6px 12px;border-style: solid;border-color: #000000;background-color: #F2F2F2;text-align:
+                center;margin: auto;">
+                    <apex:outputText rendered="{!cancellingRecord.Moeda__c == 'BRL'}" style="font-size: 14px" value="R$ {!item.TotalValue}"/>
+                    <apex:outputText rendered="{!cancellingRecord.Moeda__c == 'USD'}" style="font-size: 14px" value="US$ {!item.TotalValue}"/>
+                </td>
+            </tr>
+        </apex:repeat>
+    </table>
+    
+    <p style="font-size:16px;margin:10px 0px 10px 0px;display:block">
+        <strong>Valor total: </strong>{!sumValues}
+    </p>
+    <p style="font-size:16px;margin:0px 0px 10px 0px;{!IF(cancellingRecord.Oportunidade__r.ObservacaoInterna__c != null, 'display:block;', 'display:none;')}">
+        <strong>Observações: </strong>{!cancellingRecord.Oportunidade__r.ObservacaoInterna__c}
+    </p>
+    <br/>
+    <apex:outputLink rendered="{!approval != null && status != 'Aprovado' && status != 'Reprovado'}" style="font-size: 16px;margin:0px 0px 10px 0px;display:block;" value="{!approval}">Link da Aprovação</apex:outputLink>
+    
+</apex:component>

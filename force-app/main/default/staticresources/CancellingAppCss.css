@@ -1,0 +1,21 @@
+.slds-input-cancel-quantity, .slds-input-cancel-reason {
+    background-color: rgb(255, 255, 255)!important;
+    border: 1px solid rgb(221, 219, 218)!important;
+    border-radius: .25rem!important;
+    width: 100%!important;
+    transition: border .1s linear, background-color .1s linear!important;
+    -webkit-appearance: none!important;
+    display: inline-block!important;
+    min-height: 48px!important;
+    padding: 5px 10px!important;
+    height: auto!important;
+    clip: auto!important;
+    margin: auto!important;
+    overflow: auto!important;
+    position: initial!important;
+    line-height: normal!important;
+}
+
+.opp-cancelling-title{
+    word-break: break-word;
+}

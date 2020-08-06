@@ -1,0 +1,50 @@
+<aura:component controller="FileUploadHandler" implements="flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,force:lightningQuickAction" access="global">
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    <aura:attribute name="documents" type="FileUploadHandler.DocumentVO[]" />
+    <aura:attribute name="documentIds" type="String[]" />
+    <aura:attribute name="documentTypes" type="String[]" />
+    <aura:attribute name="Spinner" type="Boolean" default="false" />
+    <lightning:overlayLibrary aura:id="overlayLibDemo1" />
+    <lightning:notificationsLibrary aura:id="notifLibrary" />
+    <div class="slds-theme_default">
+        <div class="slds-form--compound" style="position:relative;width:100%;">
+            <table class="slds-table slds-table--bordered">
+                <thead>
+                    <tr>
+                        <th>Tipo de Documento</th>
+                        <th>Nome do Documento</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <aura:iteration items="{!v.documents}" var="d">
+                        <tr>
+                            <td style="width:30%">
+                                <select id="{!d.opportunityDocumentId}" name="docTypeSelect" required="true" variant="label-hidden" onchange="{!c.changeOpportunityDocType}"> 
+                                    <option value=""></option>
+                                    <aura:iteration items="{!v.documentTypes}" var="docType">
+                                        <option value="{!docType}">{!docType}</option>
+                                    </aura:iteration>
+                                </select>
+                            </td>
+                            <td class="word-break" style="width:70%;"><a href="" id="{!d.documentId}" onclick="{!c.previewFile}">{!d.documentName}</a>
+                            </td>
+                        </tr>
+                    </aura:iteration>
+                </tbody>
+            </table>
+            <br/>
+            <div class="slds-docked-form-footer" style="position:relative!important;">
+                <lightning:button name="close" label="Fechar" onclick="{!c.closeModal}" />
+                <lightning:button name="save" label="Salvar" variant="brand" onclick="{!c.saveOpportunityDocuments}" />
+            </div>
+            <aura:if isTrue="{!v.Spinner}">
+                <div class="slds-spinner_container">
+                    <div class="slds-spinner slds-spinner--medium" aria-hidden="false" role="alert">
+                        <div class="slds-spinner__dot-a"></div>
+                        <div class="slds-spinner__dot-b"></div>
+                    </div>
+                </div>
+            </aura:if>
+        </div>
+    </div>
+</aura:component>

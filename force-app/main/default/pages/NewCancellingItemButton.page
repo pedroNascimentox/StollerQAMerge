@@ -1,0 +1,7 @@
+<apex:page standardController="Cancelamento__c">
+    <script>
+        window.onload = function () {
+            window.location.replace('/lightning/n/AppCancelamento');
+        }    
+    </script>
+</apex:page>

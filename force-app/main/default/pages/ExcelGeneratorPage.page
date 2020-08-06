@@ -1,0 +1,156 @@
+<apex:page id="pg" standardStylesheets="false" StandardController="Opportunity" extensions="GenerateExcelController" contenttype="application/vnd.ms-excel#MultiSheetExcel.xls"
+    action="{!GetExcelData}">
+    {!xmlheader}
+    <Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel"
+        xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet" xmlns:html="http://www.w3.org/TR/REC-html40">
+        <ExcelWorkbook xmlns="urn:schemas-microsoft-com:office:excel">
+            <WindowHeight>8535</WindowHeight>
+            <WindowWidth>12345</WindowWidth>
+            <WindowTopX>480</WindowTopX>
+            <WindowTopY>90</WindowTopY>
+            <ProtectStructure>False</ProtectStructure>
+            <ProtectWindows>False</ProtectWindows>
+        </ExcelWorkbook>
+        <Styles>
+            <Style ss:ID="Default" ss:Name="Normal">
+                <Alignment ss:Vertical="Bottom"/><Borders/><Font ss:bgcolor="#FF0000"/><Interior ss:bgcolor="#FF0000"/><NumberFormat/><Protection/>
+            </Style>
+            <Style ss:ID="s16">
+                <Font ss:FontName="Calibri" x:Family="Swiss" ss:Size="13" ss:Color="#d3d3de" ss:Bold="1" ss:Border="1" /><Alignment ss:Horizontal="Center" ss:Vertical="Bottom"/><Borders><Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1"/><Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1"/><Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1"/><Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1"/></Borders><Interior ss:Color="#a6a6a6" ss:Pattern="Solid" ss:Border="1"/>
+            </Style>
+            <Style ss:ID="s16data">
+                <Alignment ss:Horizontal="Center" ss:Vertical="Bottom"/><Font ss:FontName="Calibri" x:Family="Swiss" ss:Size="13" ss:Color="#000000" ss:Border="1" />
+            </Style>
+            <Style ss:ID="s17">
+                <Font ss:FontName="Calibri" x:Family="Swiss" ss:Size="13" ss:Color="#000000" ss:Bold="1"/>
+            </Style>
+            <Style ss:ID="c11">
+                <Font x:Family="Swiss" ss:FontName="Calibri" ss:Size="11" ss:Bold="0" ss:Color="#00ff00"/>
+            </Style>
+            <Style ss:ID="c16">
+                <Font ss:FontName="Calibri" x:Family="Swiss" ss:Size="13" ss:Color="#000080" ss:Bold="1" ss:bgcolor="#FF0000" ss:Border="1" />
+                <Alignment ss:Horizontal="Center" ss:Vertical="Bottom"/>
+                <Borders><Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1"/><Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1"/><Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1"/><Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1"/></Borders><Interior ss:Color="#a6a6a6" ss:Pattern="Solid" ss:Border="1"/>
+            </Style>
+            <Style ss:ID="s66">
+                <Font ss:FontName="Calibri" x:Family="Swiss" ss:Size="14" ss:Color="#000000" />
+            </Style>
+            <Style ss:ID="s67">
+                <Font ss:FontName="Calibri" x:Family="Swiss" ss:Size="13" ss:Color="#000000" />
+            </Style>
+        </Styles>
+        <Worksheet ss:Name="Dados da oportunidade">
+            <Table ss:ExpandedColumnCount="100">
+                <Column ss:Width="180" />
+                <Column ss:Width="180" />
+                <Column ss:Width="180" />
+                <Column ss:Width="180" />
+                <Column ss:Width="180" />
+                <Column ss:Width="180" />
+                <Column ss:Width="180" />
+                <Column ss:Width="180" />
+                <Column ss:Width="180" />
+                <Column ss:Width="180" />
+                <Column ss:Width="180" />
+                <Column ss:Width="180" />
+                <Column ss:Width="180" />
+                <Column ss:Width="180" />
+                <Column ss:Width="180" />
+                <Column ss:Width="180" />
+                <Column ss:Width="180" />
+                <Column ss:Width="180" />
+                <Column ss:Width="180" />
+                <Column ss:Width="180" />
+                <Column ss:Width="180" />
+                <Column ss:Width="180" />
+                <Column ss:Width="180" />
+                <Column ss:Width="180" />
+                <Column ss:Width="180" />
+                <Column ss:Width="180" />
+                <Column ss:Width="180" />
+                <Column ss:Width="180" />
+                <Row>
+                    <apex:repeat value="{!excelDataHeaderList}" var="rowVal">
+                        <Cell ss:StyleID="c16">
+                            <Data ss:Type="String">{!rowVal}</Data>
+                        </Cell>
+                    </apex:repeat>
+                </Row>
+
+                <apex:repeat value="{!excelDataList}" var="rowVal">
+                    <Row>
+                        <Cell ss:StyleId="16data">
+                            <Data ss:Type="String">{!rowVal.NrOpp}</Data>
+                        </Cell>
+                        <Cell ss:StyleId="16data">
+                            <Data ss:Type="String">{!rowVal.DataEmissao}</Data>
+                        </Cell>
+                        <Cell ss:StyleId="16data">
+                            <Data ss:Type="String">{!rowVal.DataPreco}</Data>
+                        </Cell>
+                        <Cell ss:StyleId="16data">
+                            <Data ss:Type="String">{!rowVal.LocalNeg}</Data>
+                        </Cell>
+                        <Cell ss:StyleId="16data">
+                            <Data ss:Type="String">{!rowVal.NrProgr}</Data>
+                        </Cell>
+                        <Cell ss:StyleId="16data">
+                            <Data ss:Type="String">{!rowVal.TipoOrdem}</Data>
+                        </Cell>
+                        <Cell ss:StyleId="16data">
+                            <Data ss:Type="String">{!rowVal.ListaPreco}</Data>
+                        </Cell>
+                        <Cell ss:StyleId="16data">
+                            <Data ss:Type="String">{!rowVal.CondiPagto}</Data>
+                        </Cell>
+                        <Cell ss:StyleId="16data">
+                            <Data ss:Type="String">{!rowVal.DataJuros}</Data>
+                        </Cell>
+                        <Cell ss:StyleId="16data">
+                            <Data ss:Type="String">{!rowVal.Vencimento}</Data>
+                        </Cell>
+                        <Cell ss:StyleId="16data">
+                            <Data ss:Type="String">{!rowVal.Campanha}</Data>
+                        </Cell>
+                        <Cell ss:StyleId="16data">
+                            <Data ss:Type="String">{!rowVal.NomeRTV}</Data>
+                        </Cell>
+                        <Cell ss:StyleId="16data">
+                            <Data ss:Type="String">{!rowVal.Regional}</Data>
+                        </Cell>
+                        <Cell ss:StyleId="16data">
+                            <Data ss:Type="String">{!rowVal.SKU}</Data>
+                        </Cell>
+                        <Cell ss:StyleId="16data">
+                            <Data ss:Type="String">{!rowVal.Produto}</Data>
+                        </Cell>
+                        <Cell ss:StyleId="16data">
+                            <Data ss:Type="String">{!rowVal.Quantidade}</Data>
+                        </Cell>
+                        <Cell ss:StyleId="16data">
+                            <Data ss:Type="String">{!rowVal.PrecoVenda}</Data>
+                        </Cell>
+                        <Cell ss:StyleId="16data">
+                            <Data ss:Type="String">{!rowVal.Cultura}</Data>
+                        </Cell>
+                        <Cell ss:StyleId="16data">
+                            <Data ss:Type="String">{!rowVal.DescontoConcedido}</Data>
+                        </Cell>
+                        <Cell ss:StyleId="16data">
+                            <Data ss:Type="String">{!rowVal.DataEntrega}</Data>
+                        </Cell>
+                        <Cell ss:StyleId="16data">
+                            <Data ss:Type="String">{!rowVal.DataFaturamento}</Data>
+                        </Cell>
+                        <Cell ss:StyleId="16data">
+                            <Data ss:Type="String">{!rowVal.ObservacaoLogistica}</Data>
+                        </Cell>
+                        <Cell ss:StyleId="16data">
+                            <Data ss:Type="String">{!rowVal.CamposObservacao}</Data>
+                        </Cell>
+                    </Row>
+                </apex:repeat>
+            </Table>
+        </Worksheet>
+    </Workbook>
+</apex:page>

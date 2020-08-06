@@ -1,0 +1,546 @@
+<apex:page showHeader="false" controller="OpportunityBulkApprovalController" lightningStylesheets="true">
+    <html ng-app="app">
+
+    <head>
+        <title>Aprovação de Oportunidades</title>
+        <apex:slds ></apex:slds>
+        <link rel="stylesheet" type="text/css" href="{!URLFOR($Resource.OpportunityBulkApprovalApp, 'toastr.css')}" />
+        <link rel="stylesheet" type="text/css" href="{!URLFOR($Resource.OpportunityBulkApprovalApp, 'app.css')}" />
+        <link rel="stylesheet" type="text/css" href="{!URLFOR($Resource.OpportunityBulkApprovalApp, 'slds.css')}" />
+        <apex:stylesheet value="{!$Resource.SweetalertCss}" />
+
+        <script type="text/javascript">
+
+            window.apexController = {
+
+                "data": {
+                    "status": '{!pageContent.targetStatus}',
+                    "approveButtonName": '{!pageContent.approveButtonName}',
+                    "oppId" : "{!oppId}"
+                },
+
+                "urls": {
+                    "APPROVE_RECORDS": '{!$RemoteAction.OpportunityBulkApprovalController.approveRecords}',
+                    "GET_RECORDS": '{!$RemoteAction.OpportunityBulkApprovalController.getRecords}',
+                    "SEARCH_LOOKUP": '{!$RemoteAction.OpportunityBulkApprovalController.searchLookup}',
+                    "GET_BASE_DATA": '{!$RemoteAction.OpportunityBulkApprovalController.getBaseData}',
+                    "GET_MODAL_DATA": '{!$RemoteAction.OpportunityBulkApprovalController.getModalData}',
+                    "HANDLE_ORDER_ITEMS": '{!$RemoteAction.OpportunityBulkApprovalController.handleOrderItems}'
+                }
+            }
+
+            window.LABEL_TO_ICON = {
+                account: "/apexpages/slds/latest/assets/icons/standard-sprite/svg/symbols.svg#account",
+                search: "/apexpages/slds/latest/assets/icons/utility-sprite/svg/symbols.svg#search",
+                clear: "/apexpages/slds/latest/assets/icons/utility-sprite/svg/symbols.svg#clear",
+                close: "/apexpages/slds/latest/assets/icons/utility-sprite/svg/symbols.svg#close"
+            };
+
+        </script>
+
+        <script src="{!URLFOR($Resource.OpportunityBulkApprovalApp, 'jquery.js')}" type="text/javascript"></script>
+        <script src="{!URLFOR($Resource.OpportunityBulkApprovalApp, 'toastr.js')}" type="text/javascript"></script>
+        <script src="{!URLFOR($Resource.OpportunityBulkApprovalApp, 'angular.min.js')}" type="text/javascript"></script>
+        <script src="{!URLFOR($Resource.OpportunityBulkApprovalApp, 'angular-infinite-scroll.min.js')}" type="text/javascript"></script>
+        <script src="{!URLFOR($Resource.OpportunityBulkApprovalApp, 'utils.js')}" type="text/javascript"></script>
+        <script src="{!URLFOR($Resource.OpportunityBulkApprovalApp, 'lookups.js')}" type="text/javascript"></script>
+        <apex:includeScript value="{! $Resource.SweetalertJs }" />
+
+        <script src="{!URLFOR($Resource.OpportunityBulkApprovalApp, 'app.js')}" type="text/javascript"></script>
+
+    </head>
+
+    <body ng-controller="ItemController as c" ng-class="{noscroll: c.loading || c.orderId}">
+
+        <div class="lds-css ng-scope loading" ng-if="c.loading == true" ng-model="c.loading">
+            <div class="lds-rolling">
+                <div></div>
+            </div>
+        </div>
+
+        <header>
+            <div class="slds-page-header">
+                <div class="slds-page-header__row">
+                    <div class="slds-page-header__col-title">
+                        <div class="slds-media">
+                            <div class="slds-media__figure">
+                                <span class="slds-icon_container slds-icon-standard-task" title="Aprovação">
+                                    <svg class="slds-icon slds-page-header__icon" aria-hidden="true">
+                                        <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="/apexpages/slds/latest/assets/icons/standard-sprite/svg/symbols.svg#task"
+                                        />
+                                    </svg>
+                                    <span class="slds-assistive-text">Aprovação de Oportunidades</span>
+                                </span>
+                            </div>
+                            <div class="slds-media__body">
+                                <div class="slds-page-header__name">
+                                    <div class="slds-page-header__name-title page-title">
+                                        <h1>
+                                            <span class="slds-page-header__title slds-truncate" title="Aprovação em Massa">Aprovação de Oportunidades</span>
+                                        </h1>
+                                    </div>
+                                </div>
+
+                                <!-- <div class="header-buttons" ng-cloak="ng-cloak">
+                                    <button ng-disabled="c.loading || !c.hasRecordsChecked" class="slds-button slds-button_success"     ng-click="c.handleRecords(true)"  >{!pageContent.approveButtonName}</button>
+                                        
+                                        <apex:outputText rendered="{!pageContent.finalApprover}" escape="false">
+                                            <button ng-disabled="c.loading || !c.hasRecordsChecked" class="slds-button slds-button_destructive" ng-click="c.handleRecords(false)" >{!pageContent.rejectButtonName}</button>
+                                        </apex:outputText>
+
+                                    <button ng-disabled="c.loading" class="slds-button slds-button_neutral" ng-click="c.markAllRecords()">Selecionar Tudo</button>
+                                    <button ng-disabled="c.loading" class="slds-button slds-button_neutral" ng-click="c.loading()">Cancelar</button>
+                                </div> -->
+                            </div>
+                                <button ng-disabled="c.loading" class="slds-button slds-button_neutral" ng-click="c.markAllRecords()">{{c.markAll? "Desmarcar Todos" : "Selecionar Todos"}}</button>
+                                <button ng-disabled="c.loading || !c.hasRecordsChecked" ng-class="{'slds-button_success' : c.hasRecordsChecked}" class="slds-button slds-button_neutral"
+                                    ng-click="c.ApproveItems(true)">Aprovar</button>
+                                <button ng-disabled="c.loading || !c.hasRecordsChecked" ng-class="{'slds-button_destructive' : c.hasRecordsChecked}" class="slds-button slds-button_neutral"
+                                    ng-click="c.ApproveItems(false)">Reprovar</button>
+                            
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-header">
+                <div id="filter_control" ng-click="c.showFilters()">
+                    <ul class="slds-accordion">
+                        <li class="slds-accordion__list-item">
+                            <section id="control_menu_accordion">
+                                <div class="slds-accordion__summary">
+                                    <h3 class="slds-accordion__summary-heading">
+                                        <button id="accordion_details" aria-controls="accordion-details-01" aria-expanded="true" class="slds-button slds-button_reset slds-accordion__summary-action">
+                                            <svg class="slds-accordion__summary-action-icon slds-button__icon slds-button__icon_left" aria-hidden="true">
+                                                <use xlink:href="/apexpages/slds/latest/assets/icons/utility-sprite/svg/symbols.svg#switch" xmlns:xlink="/apexpages/slds/latest/assets/icons/utility-sprite/svg/symbols.svg#switch"></use>
+                                            </svg>
+                                            <span class="slds-truncate" title="Accordion summary">Filtros</span>
+                                        </button>
+                                    </h3>
+                                </div>
+                            </section>
+                        </li>
+                    </ul>
+                </div>
+                <div class="slds-list_horizontal slds-list_horizontal_filter horizontal_filter_modified" ng-if="c.filterShow">
+                    <div style="display: inline-table; width:100%;">
+                        <div class="field-container-top-summary">
+                            <div class="slds-form-element">
+                                <label class="slds-form-element__label slds-form-element__label_fixed" style="font-size: 0.7rem;">Número da Oportunidade</label>
+                                <div class="slds-form-element__control slds-datepicker__filter_month slds-datepicker slds-datepicker__month">
+                                    <input style="padding-left: 10px;" type="text" id="oppNumber" class="slds-input slds-input_date slds-datepicker slds-datepicker__month slds-datepicker__filter_month"
+                                        ng-model="c.oppNumber" value="{{oppNumber}}"></input>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="field-container-top-summary">
+                            <div class="slds-form-element">
+                                <label class="slds-form-element__label slds-form-element__label_fixed" for="ClienteLkp">Conta</label>
+                                <div class="slds-form-element__control">
+                                    <div class="slds-combobox_container">
+                                        <div aria-expanded="true" aria-haspopup="listbox" class="slds-combobox slds-dropdown-trigger slds-dropdown-trigger_click slds-is-open"
+                                            role="combobox">
+                                            <div id="ClienteLkp_parent" class="slds-combobox__form-element slds-input-has-icon_group-right" role="none">
+                                                <input aria-autocomplete="list" aria-controls="ClienteLkp_list" autocomplete="off" class="form-input slds-input slds-combobox__input slds-combobox__input-value lookup-input"
+                                                    id="ClienteLkp" role="textbox" type="text"></input>
+                                                <input aria-autocomplete="list" aria-controls="ClienteLkp_list" autocomplete="off" class="form-input slds-input slds-combobox__input slds-combobox__input-value lookup-input hidden-input"
+                                                    id="ClienteLkp_hidden" role="textbox" type="hidden"></input>
+                                                <div class="form-icon-group slds-input__icon-group slds-input__icon-group_right">
+                                                    <div class="hidden form-lookup-icon form-icon-loading-lookup slds-spinner slds-spinner_brand slds-spinner_x-small slds-input__spinner"
+                                                        role="status">
+                                                        <div class="slds-spinner__dot-a"></div>
+                                                        <div class="slds-spinner__dot-b"></div>
+                                                    </div>
+                                                    <button class="form-lookup-icon form-icon-search-lookup slds-input__icon slds-input__icon_right slds-button slds-button_icon button_cursor_default">
+                                                        <svg aria-hidden="true" class="slds-icon slds-icon slds-icon_x-small slds-icon-text-default">
+                                                            <use xlink:href="/apexpages/slds/latest/assets/icons/standard-sprite/svg/symbols.svg#search" xmlns:xlink="/apexpages/slds/latest/assets/icons/standard-sprite/svg/symbols.svg#search"></use>
+                                                        </svg>
+                                                        <span class="slds-assistive-text">Resultados</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div class="slds-dropdown slds-dropdown_length-with-icon-7 slds-dropdown_fluid hidden lookup-list" id="ClienteLkp_list" role="listbox">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="field-container-top-summary">
+                            <div class="slds-form-element">
+                                <label class="slds-form-element__label slds-form-element__label_fixed">RTV</label>
+                                <div class="slds-form-element__control slds-datepicker__filter_month slds-datepicker slds-datepicker__month">
+                                    <input style="padding-left: 10px;" type="text" id="rtvName" class="slds-input slds-input_date slds-datepicker slds-datepicker__month slds-datepicker__filter_month"
+                                        ng-model="c.rtvName" value="{{rtvName}}"></input>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="field-container-top-summary">
+                            <div class="slds-form-element filter_status_element">
+                                <label class="slds-form-element__label slds-form-element__label_fixed overflow_div" for="select-hierarchy">Tipo de Ordem</label>
+                                <div class="slds-form-element__control">
+                                    <div class="slds-select_container">
+                                        <select class="slds-select" id="select-hierarchy" ng-model="c.OrderTypeSelected" ng-cloak="ng-cloak">
+                                            <option ng-repeat="ordType in c.orderTypes" value="{{ordType}}">{{ordType}}</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="field-container-top-summary">
+                            <div class="slds-form-element filter_status_element">
+                                <label class="slds-form-element__label slds-form-element__label_fixed overflow_div" for="select-hierarchy">Motivo de Ordem</label>
+                                <div class="slds-form-element__control">
+                                    <div class="slds-select_container">
+                                        <select class="slds-select" id="select-hierarchy" ng-model="c.OrderMotivSelected" ng-cloak="ng-cloak">
+                                            <option ng-repeat="ordMotiv in c.orderMotivs" value="{{ordMotiv}}">{{ordMotiv}}</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="field-container-top-summary">
+                            <div class="slds-form-element">
+                                <label class="slds-form-element__label slds-form-element__label_fixed">Observação Interna</label>
+                                <div class="slds-form-element__control slds-datepicker__filter_month slds-datepicker slds-datepicker__month">
+                                    <input style="padding-left: 10px;" type="text" id="oppObsInter" class="slds-input slds-input_date slds-datepicker slds-datepicker__month slds-datepicker__filter_month"
+                                        ng-model="c.oppObsInter" value="{{oppObsInter}}"></input>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="field-container-top-summary">
+                            <div class="filter_button">
+                                <button id="filter-button" class="slds-button slds-button_neutral" ng-click="c.changeSelectedObject('Order', true)">Filtrar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- <div class="table-header">
+                    <label class="slds-form-element__label" for="object-select">Objeto</label>
+                    <div class="slds-form-element__control">
+                        <div class="slds-select_container">
+                            <select ng-disabled="c.loading" ng-model="c.selectedObject" ng-change="c.changeSelectedObject('{{c.selectedObject}}')" class="slds-select" id="object-select" ng-cloak="ng-cloak">
+                                <option selected="selected" disabled="disabled" label="Selecione o objeto... "/>
+                                <option ng-repeat="(objApiName, object) in c.objects" value="{{objApiName}}" label="{{object.label}}" >{{object.label}}</option>
+                            </select>
+                        </div>
+                    </div>
+                </div> -->
+        </header>
+
+        <div id="orderItemsModal" class="hidden">
+            <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1"
+                class="slds-modal slds-modal_large slds-fade-in-open">
+                <div class="slds-modal__container slds-big_modal__container_modified">
+                    <header class="slds-modal__header slds-modal__header_empty">
+                        <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" title="Close" ng-click="c.closeOrderItemsModal()">
+                            <svg class="slds-button__icon slds-button__icon_large" aria-hidden="true">
+                                <use xmlns:href="/apexpages/slds/latest/assets/icons/utility-sprite/svg/symbols.svg#close"></use>
+                            </svg>
+                            <span class="slds-assistive-text">Fechar</span>
+                        </button>
+                    </header>
+                    <div class="slds-modal__content slds-p-around_medium modal-content">
+                        <div class="order-modal-header">
+                            <div id="div_summary_fields" class="div_summary_fields">
+                                <div class="slds-grid slds-gutters gutters_modified" style="margin-left: 2% !important">
+                                    <div style="width: 16% !important; margin-right: 0 !important" class="slds-form-element slds-form-element_ellipsis">
+                                        <label class="slds-form-element__label" for="text-input-id-1">Oportunidade: </label>
+                                        <div class="slds-form-element__control">
+                                            <div class="slds-form-element__static slds-form-element_ellipsis"><a href="/{{c.modalOpp.id}}">{{c.modalOpp.oppNumber}}</a></div>
+                                        </div>
+                                    </div>
+                                    <div style="width: 16.2% !important; margin-right: 0 !important" class="slds-form-element slds-form-element_full slds-form-element_ellipsis">
+                                        <label class="slds-form-element__label" for="text-input-id-1">Conta:</label>
+                                        <div class="slds-form-element__control">
+                                            <div class="slds-form-element__static slds-form-element_ellipsis">{{c.modalOpp.accountName}}</div>
+                                        </div>
+                                    </div>
+                                    <!--<div class="slds-form-element slds-form-element_ellipsis">
+                                        <label class="slds-form-element__label" for="text-input-id-1">RTV:</label>
+                                        <div class="slds-form-element__control">
+                                            <div class="slds-form-element__static slds-form-element_ellipsis">{{c.modalOpp.rtvName}}</div>
+                                        </div>
+                                    </div>-->
+                                    <div style="width: 16.2% !important; margin-right: 0 !important" class="slds-form-element slds-form-element_ellipsis">
+                                        <label class="slds-form-element__label" for="text-input-id-1">Tipo Ordem</label>
+                                        <div class="slds-form-element__control">
+                                            <div class="slds-form-element__static slds-form-element_ellipsis">{{c.modalOpp.orderType}}</div>
+                                        </div>
+                                    </div>
+                                    <div style="width: 30% !important; margin-right: 0 !important" class="slds-form-element slds-form-element_full slds-form-element_ellipsis">
+                                        <label class="slds-form-element__label" for="text-input-id-1">Motivo:</label>
+                                        <div class="slds-form-element__control">
+                                            <div class="slds-form-element__static slds-form-element_ellipsis">{{c.modalOpp.orderReason}}</div>
+                                        </div>
+                                    </div>
+                                    <!--<div class="slds-form-element slds-form-element_ellipsis">
+                                        <label class="slds-form-element__label" for="text-input-id-1">Campanha</label>
+                                        <div class="slds-form-element__control">
+                                            <div class="slds-form-element__static slds-form-element_ellipsis">{{c.modalOpp.campaignType}}</div>
+                                        </div>
+                                    </div>-->
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal_tables_div">
+                            <div class="records-table-wrapper modal_table" ng-if="c.modalOppItemsToHandle.length > 0" style="border-bottom: 1px solid #dddbda;">
+                                <div class="order_items_table slds-table slds-table_cell-buffer slds-table_col-bordered" ng-cloak="ng-cloak">
+                                    <div class="records-table-header records-table-header_div bordered">
+                                        <div class="div_inline_block td-th-div td-th-produto">Produto</div>
+                                        <div class="div_inline_block td-th-div td-th-volume">Quantidade</div>
+                                        <div class="div_inline_block td-th-div td-th-preco">Preço de Venda</div>
+                                        <div class="div_inline_block td-th-div td-th-preco_lista">Desconto / Acréscimo</div>
+                                        <div class="div_inline_block td-th-div td-th-excedido">Desconto Excedente</div>
+                                        <div class="div_inline_block td-th-div td-th-status" style="text-align:center">Status</div>
+                                    </div>
+                                    <div ng-repeat="record in c.modalOppItemsToHandle track by record.id" class="div_container_responsive_table">
+                                        <div role="gridcell" class="item-td-th-div div_inline_block td-th-produto">
+                                            <div class="div_display_label_responsive_table">Produto</div>
+                                            <div class="div_display_data_modified">{{record.productName}}</div>
+                                        </div>
+                                        <div role="gridcell" class="item-td-th-div div_inline_block td-th-volume">
+                                            <div class="div_display_label_responsive_table">Quantidade</div>
+                                            <div class="div_display_data_modified">{{record.productQtd}}</div>
+                                        </div>
+                                        <div role="gridcell" class="item-td-th-div div_inline_block td-th-preco">
+                                            <div class="div_display_label_responsive_table">Preço de Venda</div>
+                                            <div class="div_display_data_modified">{{record.salesPrice}}</div>
+                                        </div>
+                                        <div role="gridcell" class="item-td-th-div div_inline_block td-th-preco_lista">
+                                            <div class="div_display_label_responsive_table">Desconto / Acréscimo</div>
+                                            <div class="div_display_data_modified">{{record.discountGranted}} %</div>
+                                        </div>
+                                        <div role="gridcell" class="item-td-th-div div_inline_block td-th-excedido">
+                                            <div class="div_display_label_responsive_table">Desconto Excedente</div>
+                                            <div class="div_display_data_modified">{{record.discountExcess}} %</div>
+                                        </div>
+                                        <div role="gridcell" class="item-td-th-div div_inline_block td-th-status item_status_div" style="text-align: center">
+                                            <div class="div_display_label_responsive_table">Status</div>
+                                            <span class="flag-sinal-false"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="records-table-wrapper modal_table" ng-if="c.modalOppItemsAlreadyHandled.length > 0" style="border-bottom: 1px solid #dddbda;">
+                                <div class="order_items_table slds-table slds-table_cell-buffer slds-table_col-bordered" ng-cloak="ng-cloak">
+                                    <div class="records-table-header records-table-header_div bordered">
+                                        <div class="div_inline_block td-th-div td-th-produto">Produto</div>
+                                        <div class="div_inline_block td-th-div td-th-volume">Quantidade</div>
+                                        <div class="div_inline_block td-th-div td-th-preco">Preço de Venda</div>
+                                        <div class="div_inline_block td-th-div td-th-preco_lista">Desconto / Acréscimo</div>
+                                        <div class="div_inline_block td-th-div td-th-excedido">Desconto Excedente</div>
+                                        <div class="div_inline_block td-th-div td-th-status" style="text-align:center">Status</div>
+                                    </div>
+                                    <div ng-repeat="record in c.modalOppItemsAlreadyHandled track by record.id" class="div_container_responsive_table">
+                                        <div role="gridcell" class="item-td-th-div div_inline_block td-th-produto">
+                                            <div class="div_display_label_responsive_table">Produto</div>
+                                            <div class="div_display_data_modified">{{record.productName}}</div>
+                                        </div>
+                                        <div role="gridcell" class="item-td-th-div div_inline_block td-th-volume">
+                                            <div class="div_display_label_responsive_table">Quantidade</div>
+                                            <div class="div_display_data_modified">{{record.productQtd}}</div>
+                                        </div>
+                                        <div role="gridcell" class="item-td-th-div div_inline_block td-th-preco">
+                                            <div class="div_display_label_responsive_table">Preço de Venda</div>
+                                            <div class="div_display_data_modified">{{record.salesPrice}}</div>
+                                        </div>
+                                        <div role="gridcell" class="item-td-th-div div_inline_block td-th-preco_lista">
+                                            <div class="div_display_label_responsive_table">Desconto / Acréscimo</div>
+                                            <div class="div_display_data_modified">{{record.discountGranted}} %</div>
+                                        </div>
+                                        <div role="gridcell" class="item-td-th-div div_inline_block td-th-excedido">
+                                            <div class="div_display_label_responsive_table">Desconto Excedente</div>
+                                            <div class="div_display_data_modified">{{record.discountExcess}} %</div>
+                                        </div>
+                                        <div role="gridcell" class="item-td-th-div div_inline_block td-th-status item_status_div" style="text-align: center">
+                                            <div class="div_display_label_responsive_table">Status</div>
+                                            <span class="flag-sinal-true"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal_table slds-text-heading_medium warning_container" ng-if="c.modalOppItemsAlreadyHandled.length == 0 && c.modalOppItemsToHandle.length == 0">
+                                <p class="warning_empty_tab_content">
+                                    Não há registros a serem processados.
+                                </p>
+                            </div>
+                            <!--<div class="records-table-wrapper modal_table" ng-if="c.modalOppItemsAlreadyHandled.length > 0">
+                                <div class="order_items_table slds-table slds-table_cell-buffer slds-table_col-bordered" ng-cloak="ng-cloak">
+                                    <div class="records-table-header records-table-header_div bordered">
+                                        <div class="div_inline_block td-th-div td-th-checkbox">&nbsp;</div>
+                                        <div class="div_inline_block td-th-div td-th-item">Item</div>
+                                        <div class="div_inline_block td-th-div td-th-produto">Produto</div>
+                                        <div class="div_inline_block td-th-div td-th-volume">Volume</div>
+                                        <div class="div_inline_block td-th-div td-th-preco">Preço</div>
+                                        <div class="div_inline_block td-th-div td-th-preco_lista">Preço de Lista</div>
+                                        <div class="div_inline_block td-th-div td-th-excedido">% Excedido</div>
+                                        <div class="div_inline_block td-th-div td-th-status">Status</div>
+                                    </div>
+                                    <div ng-repeat="record in c.modalOppItemsAlreadyHandled track by record.id" class="div_container_responsive_table">
+                                        <div role="gridcell" class="item-td-th-div div_inline_block td-th-checkbox">
+                                            <div class="div_display_label_responsive_table">
+                                                &nbsp;
+                                            </div>
+                                        </div>
+                                        <div role="gridcell" class="item-td-th-div div_inline_block td-th-item">
+                                            <div class="div_display_label_responsive_table">Item</div>
+                                            <div class="div_display_data_modified">{{record.numeroItemPedido}}</div>
+                                        </div>
+                                        <div role="gridcell" class="item-td-th-div div_inline_block td-th-produto">
+                                            <div class="div_display_label_responsive_table">Produto</div>
+                                            <div class="div_display_data_modified">{{record.nomeProduto}}</div>
+                                        </div>
+                                        <div role="gridcell" class="item-td-th-div div_inline_block td-th-volume">
+                                            <div class="div_display_label_responsive_table">Volume</div>
+                                            <div class="div_display_data_modified">{{record.volume}}</div>
+                                        </div>
+                                        <div role="gridcell" class="item-td-th-div div_inline_block td-th-preco">
+                                            <div class="div_display_label_responsive_table">Preço</div>
+                                            <div class="div_display_data_modified">{{record.preco}}</div>
+                                        </div>
+                                        <div role="gridcell" class="item-td-th-div div_inline_block td-th-preco_lista">
+                                            <div class="div_display_label_responsive_table">Preço de Lista</div>
+                                            <div class="div_display_data_modified">{{record.precoLista}}</div>
+                                        </div>
+                                        <div role="gridcell" class="item-td-th-div div_inline_block td-th-excedido">
+                                            <div class="div_display_label_responsive_table">% Excedido</div>
+                                            <div class="div_display_data_modified">{{record.excedido}}</div>
+                                        </div>
+                                        <div role="gridcell" class="item-td-th-div div_inline_block td-th-status item_status_div">
+                                            <div class="div_display_label_responsive_table">Status</div>
+                                            <span class="flag-sinal-{{record.flagSinal}}"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal_table slds-text-heading_medium warning_container" ng-if="c.modalOppItemsAlreadyHandled.length == 0">
+                                <p class="warning_empty_tab_content">
+                                    Não há registros já processados.
+                                </p>
+                            </div>-->
+                        </div>
+                        <div class="slds-no-flex approve_buttons_modal div_inline_block" style="width: 100%;">
+                            <button class="slds-button slds-button_neutral" ng-click="c.closeOrderItemsModal()">Cancelar</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <div class="slds-backdrop slds-backdrop_open">
+            </div>
+        </div>
+
+        <div class="records_table_div">
+            <div class="modal_table slds-text-heading_medium warning_container" ng-if="c.allRecords.length == 0">
+                <p class="warning_empty_tab_content" style=" padding-top: 25px; ">
+                    Não há Oportunidades em Processo de Aprovação.
+                </p>
+            </div>
+            <div class="records-table-wrapper slds-table slds-table_bordered slds-table_fixed-layout slds-table_resizable-cols table_view"
+                ng-if="c.allRecords.length > 0">
+                <div class="records-table slds-table slds-table_cell-buffer" ng-cloak="ng-cloak" infinite-scroll="c.getNextRecords()" infinite-scroll-distance='1'
+                    infinite-scroll-use-document-bottom="true">
+                    <div class="records-table-header records-table-header_div bordered">
+                        <div style="display: inline-block;vertical-align: top;">
+                            <div class="div_inline_block td-th-div td-th-checkbox" style="width: 35px;">
+                                &nbsp;
+                            </div>
+                        </div>
+                        <div style="width: 100%; display: inline-block;text-align: left;">
+                            <div class="td-th-div td-th-opp">
+                                <span class="slds-truncate">Oportunidade</span>
+                            </div>
+                            <div class="td-th-div td-th-opp">
+                                <span class="slds-truncate">Conta</span>
+                            </div>
+                            <div class="td-th-div td-th-opp">
+                                <span class="slds-truncate">RTV</span>
+                            </div>
+                            <div class="td-th-div td-th-opp">
+                                <span class="slds-truncate">Tipo Ordem</span>
+                            </div>
+                            <!--<div class="td-th-div td-th-camType">
+                                <span class="slds-truncate">Campanha</span>
+                            </div>-->
+                            <div class="td-th-div td-th-opp">
+                                <span class="slds-truncate">Dt ini Juros</span>
+                            </div>
+                            <div class="td-th-div td-th-opp">
+                                <span class="slds-truncate">Cond Pagto</span>
+                            </div>
+                            <div class="td-th-div td-th-opp">
+                                <span class="slds-truncate">Moeda</span>
+                            </div>
+                            <div class="td-th-div td-th-opp">
+                                <span class="slds-truncate">Valor Total</span>
+                            </div>
+                            <div class="td-th-div td-th-opp">
+                                <span class="slds-truncate">Avaliação</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div ng-repeat="record in c.visibleRecords track by record.id" class="div_container_responsive_table slds-line-height_reset order-table-row bordered">
+                        <div role="gridcell" class="item-td-th-div div_inline_block toggle_container">
+                            <div class="td-th-div slds-nav-vertical__item checkbox_container" style="/* width: 10px; */">
+                                <div class="record-select-content slds-checkbox_add-button">
+                                    <input ng-disabled="c.loading" class="slds-assistive-text record-checkbox" type="checkbox" id="add-checkbox-{{record.id}}"
+                                        ng-checked="record.checked" ng-model="record.checked" ng-change="c.updateValidity()">
+                                    </input>
+                                    <label for="add-checkbox-{{record.id}}" class="slds-checkbox_faux record-checkbox-label">
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="width: 100%; display: inline-block;text-align: left;" ng-click="c.openOrderItemsModal(record)">
+                            <div role="gridcell" class="div_inline_block td-th-div td-th-opp">
+                                <div class="div_display_label_responsive_table">Oportunidade</div>
+                                <div class="div_display_data_modified"><a href="/{{record.id}}">{{record.oppNumber}}</a></div>
+                            </div>
+                            <div role="gridcell" class="div_inline_block td-th-div td-th-opp">
+                                <div class="div_display_label_responsive_table">Conta</div>
+                                <div class="div_display_data_modified">{{record.accountName}}</div>
+                            </div>
+                            <div role="gridcell" class="div_inline_block td-th-div td-th-opp">
+                                <div class="div_display_label_responsive_table">RTV</div>
+                                <div class="div_display_data_modified">{{record.rtvName}}</div>
+                            </div>
+                            <div role="gridcell" class="div_inline_block td-th-div td-th-opp">
+                                <div class="div_display_label_responsive_table">Tipo Ordem</div>
+                                <div class="div_display_data_modified">{{record.orderType}}</div>
+                            </div>
+                            <!--<div role="gridcell" class="div_inline_block td-th-div td-th-camType">
+                                <div class="div_display_label_responsive_table">Campanha</div>
+                                <div class="div_display_data_modified">{{record.campaignType}}</div>
+                            </div>-->
+                            <div role="gridcell" class="div_inline_block td-th-div td-th-opp">
+                                <div class="div_display_label_responsive_table">Data de inicio de Juros</div>
+                                <div class="div_display_data_modified">{{record.dateInterest}}</div>
+                            </div>
+                            <div role="gridcell" class="div_inline_block td-th-div td-th-opp">
+                                <div class="div_display_label_responsive_table">Condição Pagamento</div>
+                                <div class="div_display_data_modified">{{record.condiPagto}}</div>
+                            </div>
+                            <div role="gridcell" class="div_inline_block td-th-div td-th-opp">
+                                <div class="div_display_label_responsive_table">Moeda</div>
+                                <div class="div_display_data_modified">{{record.currencyCoin}}</div>
+                            </div>
+                            <div role="gridcell" class="div_inline_block td-th-div td-th-opp">
+                                <div class="div_display_label_responsive_table">Valor Total</div>
+                                <div class="div_display_data_modified">{{record.totalPrice}}</div>
+                            </div>
+                            <div role="gridcell" class="div_inline_block td-th-div td-th-opp">
+                                <div class="div_display_label_responsive_table">Avaliação Necessária</div>
+                                <div class="div_display_data_modified">{{record.evaluationRequired}}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script src="{!URLFOR($Resource.OpportunityBulkApprovalApp, 'utils.js')}" type="text/javascript"></script>
+    </body>
+
+    </html>
+</apex:page>

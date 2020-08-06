@@ -1,0 +1,159 @@
+<div class="wrapper-products">
+    <div class="slds-grid">
+        <div class="slds-col slds-size_12-of-12">
+            <div class="slds-section slds-is-open">
+                <h3 class="slds-section__title slds-theme_shade dblock section-opp">
+                    <div class="slds-grid slds-wrap">
+                        <div class="slds-col slds-size_10-of-12">
+                            <span class="slds-p-horizontal_small" title="Produtos">
+                                Produtos <small class="slds-p-horizontal_small">Itens da Oportunidade</small>
+                            </span>
+                        </div>
+                        <div class="slds-col slds-size_2-of-12">
+                            <div class="slds-form-element">
+                                <div class="slds-form-element__control">
+                                    <div class="slds-checkbox">
+                                        <input type="checkbox" name="options" id="check-{{base.contextOpp.id}}"
+                                            value="check-{{base.contextOpp.id}}" ng-change="selectAllItems()"
+                                            ng-model="base.contextOpp.selected" ng-checked="base.contextOpp.selected" />
+                                        <label class="slds-checkbox__label" for="check-{{base.contextOpp.id}}">
+                                            <span class="slds-checkbox_faux"></span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                    </div>
+                </h3>
+                <div aria-hidden="false" class="slds-section__content">
+                    <div class="slds-grid slds-wrap">
+                        <div class="slds-col slds-size_1-of-1 slds-large-size_1-of-3 slds-medium-size_1-of-2"
+                            ng-repeat="product in base.contextOpp.products | orderBy: 'name'">
+                            <fieldset class="slds-form-element">
+                                <div class="slds-form-element__control">
+                                    <div class="slds-visual-picker slds-visual-picker_vertical">
+                                        <input type="checkbox" id="{{product.id}}"
+                                            value="visual-picker-{{product.id}}" name="productsInput"
+                                            ng-model="product.selected" ng-checked="product.selected"
+                                            ng-change="validateSelectedOpp()" />
+                                        <label for="{{product.id}}">
+                                            <span
+                                                class="slds-visual-picker__figure slds-visual-picker__text slds-align_absolute-left">
+                                                <span>
+                                                    <span
+                                                        class="slds-text-heading_medium
+                                                        slds-m-bottom_x-small">{{product.name}}</span>
+                                                    <span
+                                                        class="slds-text-title slds-m-bottom_x-small">{{product.sku}}</span>
+                                                    <div class="slds-grid slds-wrap">
+                                                        <div class="slds-col slds-size_1-of-2 clear-h list-of-dates">
+                                                            <div class="slds-form-element">
+                                                                <label class="slds-form-element__label"
+                                                                    for="{{product.id}}">Data</label>
+                                                                <p>{{formatScopeDate(product.deliveryDate)}} <span
+                                                                        ng-show="product.confirmed">
+                                                                        <svg class="slds-button__icon"
+                                                                            aria-hidden="true">
+                                                                            <use
+                                                                                xlink:href="/apexpages/slds/latest/assets/icons/utility-sprite/svg/symbols.svg#check">
+                                                                            </use>
+                                                                        </svg>
+                                                                    </span></p>
+                                                            </div>
+                                                        </div>
+                                                        <div class="slds-col slds-size_1-of-2 clear-h right">
+                                                            <div class="slds-form-element">
+                                                                <label class="slds-form-element__label"
+                                                                    for="{{product.id}}">Quantidade</label>
+                                                                <p>{{product.quantity}}</p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="slds-grid slds-wrap">
+                                                        <div class="slds-col clear-h list-of-dates">
+                                                            <div class="slds-form-element">
+                                                                <div class="wrapper-small">
+                                                                    <small>
+                                                                        <span>
+                                                                            <svg class="slds-section__title-action-icon slds-button__icon slds-button__icon_left"
+                                                                                aria-hidden="true">
+                                                                                <use
+                                                                                    xlink:href="/apexpages/slds/latest/assets/icons/utility-sprite/svg/symbols.svg#company">
+                                                                                </use>
+                                                                            </svg>
+                                                                            {{product.selectedAccount != null ? product.selectedAccount.name : '&nbsp;'}}
+                                                                        </span>
+                                                                    </small>
+                                                                    <small ng-if="product.orderType == 'Remanejamento'">
+                                                                        <span ng-if="product.shipper != null">
+                                                                            <svg class="slds-section__title-action-icon slds-button__icon slds-button__icon_left"
+                                                                                aria-hidden="true">
+                                                                                <use
+                                                                                    xlink:href="/apexpages/slds/latest/assets/icons/utility-sprite/svg/symbols.svg#internal_share">
+                                                                                </use>
+                                                                            </svg>
+                                                                            {{product.shipper.name}}
+                                                                        </span>
+                                                                        <span ng-if="product.shipper == null">
+                                                                            <svg class="slds-section__title-action-icon slds-button__icon slds-button__icon_left"
+                                                                                aria-hidden="true">
+                                                                                <use
+                                                                                    xlink:href="/apexpages/slds/latest/assets/icons/utility-sprite/svg/symbols.svg#internal_share">
+                                                                                </use>
+                                                                            </svg>
+                                                                            <i>CLIENTE REMANEJAMENTO NÃO IDENTIFICADO</i>
+                                                                        </span>
+                                                                    </small>
+                                                                    <small ng-if="product.orderType == 'Conta e Ordem'">
+                                                                        <span ng-if="product.receiver != null">
+                                                                            <svg class="slds-section__title-action-icon slds-button__icon slds-button__icon_left"
+                                                                                aria-hidden="true">
+                                                                                <use
+                                                                                    xlink:href="/apexpages/slds/latest/assets/icons/utility-sprite/svg/symbols.svg#event">
+                                                                                </use>
+                                                                            </svg>
+                                                                            {{product.receiver.name}}
+                                                                        </span>
+                                                                        <span ng-if="product.receiver == null">
+                                                                            <svg class="slds-section__title-action-icon slds-button__icon slds-button__icon_left"
+                                                                                aria-hidden="true">
+                                                                                <use
+                                                                                    xlink:href="/apexpages/slds/latest/assets/icons/utility-sprite/svg/symbols.svg#event">
+                                                                                </use>
+                                                                            </svg>
+                                                                            <i>RECEBEDOR NÃO IDENTIFICADO</i>
+                                                                        </span>
+                                                                    </small>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </span>
+                                            </span>
+                                            <span class="slds-icon_container slds-visual-picker__text-check">
+                                                <svg class="slds-icon slds-icon-text-check slds-icon_x-small"
+                                                    aria-hidden="true">
+                                                    <use
+                                                        xlink:href="/apexpages/slds/latest/assets/icons/utility-sprite/svg/symbols.svg#check">
+                                                    </use>
+                                                </svg>
+                                            </span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </fieldset>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="slds-spinner" ng-show="isLoading">
+    <div class="slds-spinner_container">
+        <div role="status" class="slds-spinner slds-spinner_medium slds-spinner_brand">
+            <span class="slds-assistive-text">Loading</span>
+            <div class="slds-spinner__dot-a"></div>
+            <div class="slds-spinner__dot-b"></div>
+        </div>
+    </div>
+</div>

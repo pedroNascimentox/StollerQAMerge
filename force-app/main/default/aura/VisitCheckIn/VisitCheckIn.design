@@ -1,0 +1,4 @@
+<design:component>
+	<design:attribute label="Rótulo de check-in"  name="checkInLabel" default="Check-In" description="Rótulo utilizado no botão exibido na página do registro."/>
+    <design:attribute label="Rótulo de check-out" name="checkOutLabel" default="Check-Out" description="Rótulo utilizado no botão exibido na página do registro."/>
+</design:component>

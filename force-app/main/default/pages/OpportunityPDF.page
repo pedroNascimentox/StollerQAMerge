@@ -1,0 +1,320 @@
+<apex:page controller="OpportunityPDFController" standardStylesheets="false" renderAs="PDF">
+    <head>
+        <apex:stylesheet value="{!$Resource.OpportunityPDFStyle}" />
+
+    </head>
+    
+    <body>
+        <div id="main_div">
+            <div class="header">
+                <table id="header">
+                    <tr>
+                        <td style="width: 15%;">
+                            <div>
+                                <apex:image url="{!$Resource.stoller_logo}" width="100px" height="75px">
+                                    
+                                </apex:image>
+                            </div>
+                        </td>
+                        <td style="width: 20%;">
+                            <p>
+                                Stoller do Brasil LTDA<br/>
+                                <br/>
+                                Matriz/Fábrica<br/>
+                                Rod SP 332, s/n, KM 138 - C. Postal 55<br/>
+                                Cosmópolis/SP - CEP 13150-030<br/>
+                                Telefone: 55 (19) 3872-8288 / Fax 55 (19) 3872-1200<br/>
+                                www.stoller.com.br | info@stoller.com.br
+                            </p>
+                        </td>
+                        <td>
+                            <p>
+                            <br/>
+                            <br/>
+                            Escritório<br/>
+                            Avenida Carlos Grimaldi, 1701 - Torre II - 3º Andar<br/>
+                            Campinas/SP - CEP 13091-908<br/>
+                            Telefone: 55 (19) 3707-1200 / Fax 55 (19) 3707-1201<br/>
+        
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            
+            
+            <table id="opportunity_info">
+                <tr>
+                    <th colspan="2">Oportunidade de Venda n° {!opportunityNumber} - Emissão: {!issueDateReplaced}</th>
+                </tr>
+                <tr>
+                    <td colspan="1">
+                        <b>Razão Social:</b> {!opportunity.account.name}
+                    </td>
+                    <td colspan="1">
+                        <b>Local de negócios:</b> {!opportunity.localNegocio__r.Descricao__c}
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="1">
+                        <b>Endereço:</b> {!opportunity.account.shippingStreet}
+                    </td>
+                    <td colspan="1">
+                        <b>Cidade/ UF:</b> {!opportunity.account.shippingCity}/ {!opportunity.account.shippingState}
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="1">
+                        <b>Fazenda:</b> {!opportunity.NomeFazenda__c}
+                    </td>
+                    <td colspan="1">
+                        <b>CEP:</b> {!opportunity.account.shippingPostalCode}
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="1">
+                        <b>CNPJ:</b> {!opportunity.account.CNPJ__c}
+                    </td>
+                    <td colspan="1">
+                        <b>Inscrição Estadual:</b> {!opportunity.account.InscricaoEstadual__c}
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="1">
+                        <b>Tipo de Ordem:</b> {!opportunity.TipoOrdem__c}
+                    </td>
+                    <td colspan="1">
+                        <b>Tipo de Frete</b> {!opportunity.TipoFrete__c}
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="1">
+                        <b>E-mail para aprovação:</b> {!opportunity.EMailAprovacaoPedidoCliente__c}
+                    </td>
+                    <td colspan="1">
+                        <b>Moeda:</b> {!opportunity.Moeda__c}
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="1">
+                        <b>Cond. Pagamento:</b> {!opportunity.condicaoPagamento__r.Descricao__c}
+                    </td>
+                    <td colspan="1">
+                        <div style="{!IF(!hideDueDate, '', 'display:none')}"><b>Vencimento:</b> {!dueDate}</div>
+                    </td>
+                </tr>
+            </table>
+            <table id="oppportunity_line_items_table" style="page-break-inside: auto;">
+                <tr style="background-color: #b0adab;">
+                    <th width="6%">Item</th>
+                    <th width="8%">SKU</th>
+                    <th width="14%">Descrição</th>
+                    <th width="8%">Embalagem</th>
+                    <th width="4%">Qtde</th>
+                    <th width="5%">Litros</th>
+                    <th width="11%">Valor do Produto</th>
+                    <th width="10%">Valor do Litro</th>
+                    <th width="12%">Valor Total do Produto</th>
+                    <th width="10%">Valor do IPI</th>
+                    <th width="10%">Pedido Cliente</th>
+                </tr>
+                <apex:repeat value="{!items}" var="item">
+                    <tr>
+                        <td>
+                            {!item.itemNumber}
+                        </td>
+                        <td style="word-break:break-all;"> 
+                            {!item.sku}
+                        </td>
+                        <td>
+                            {!item.productDescription}
+                        </td>
+                        <td>
+                            {!item.emabalagem}
+                        </td>
+                        <td>
+                            {!item.quantity}
+                        </td>
+                        <td>
+                            {!item.liters}L
+                        </td>
+                        <td class="td-break-all" style="{!IF(item.unitPriceFontSizeSmaller, 'font-size:10px;', '')}">
+                            {!IF(isDolar, 'US$', 'R$')} {!item.unitPrice}
+                        </td>
+                        <td class="td-break-all"  style="{!IF(item.pricePerLiterFontSizeSmaller, 'font-size:10px;', '')}">
+                            {!IF(isDolar, 'US$', 'R$')} {!item.pricePerLiter}
+                        </td>
+                        <td class="td-break-all" style="{!IF(item.totalPriceFontSizeSmaller, 'font-size:10px;', '')}">
+                            {!IF(isDolar, 'US$', 'R$')} {!item.totalPrice}
+                        </td>
+                        <td class="td-break-all" style="{!IF(item.totalPriceFontSizeSmaller, 'font-size:10px;', '')}">
+                            {!IF(isDolar, 'US$', 'R$')} {!item.IPIvalue}
+                        </td>
+                        <td>
+                            {!item.customerOrderNumber}
+                        </td>
+                    </tr>
+                </apex:repeat>
+            </table>
+            <table id="line_items_footer">
+                <tr style="page-break-inside: auto;">
+                    <td colspan="1" style="page-break-inside: auto !important;">
+                        <b>Observações: </b>{!opportunity.observacaoPDF__c}
+                    </td>
+                    <td colspan="1" style="vertical-align: top;">
+                        <p style="margin: 0;width:100%;"><div style="{!IF(itemCounter <= 4, 'display:none', 'display:inline-block')}"><b>Valor Total dos Produtos:</b></div><div style="{!IF(itemCounter <= 4, 'display:none', 'text-align:right;display:inline-block;float:right;')}"> {!IF(isDolar, 'US$', 'R$')} {!totalAmountWithoutIPI}</div></p>
+                        <p style="margin: 0;width:100%;"><div style="display:inline-block;"><b>Valor Total dos Produtos com IPI:</b></div><div style="text-align:right;display:inline-block;float:right;"> {!IF(isDolar, 'US$', 'R$')} {!totalAmount}</div></p>
+                    </td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td colspan="1" style="vertical-align: top;">
+                    </td>
+                </tr>
+                <tr style="{!IF(isVendor, '', 'display:none')}">
+                    <td colspan="2">
+                        <div id="payment_conditions" class="conditions">
+                            Financiamento realizado pelo cliente junto à instituição financeira com a interveniência da Stoller, com encargos de <b>{!opportunity.condicaoPagamento__r.jurosComercialFinanceiro__c}%</b>
+                            que será cobrado a partir de <b>{!IF(sinceDate != null, sinceDate, issueDate)}</b> até o vencimento em <b>{!vendorDueDate}</b>. A quitação desta compra somente ocorrerá quando o
+                            cliente efetuar o pagamento do preço com juros à instituição responsável pelo financiamento.
+                        </div>
+                    </td>
+                </tr>
+                <tr style="{!IF(dueDate == '', '', 'display:none')}">
+                    <td colspan="2">
+                        <div class="conditions">
+                            O vencimento será calculado após a emissão da NF.
+                        </div>
+                    </td>
+                </tr>
+                <tr style="{!IF(isSuframado, '', 'display:none')}">
+                    <td colspan="2">
+                        <div class="conditions">
+                            O incentivo de Suframa será concedido na emissão da Nota Fiscal.
+                        </div>
+                    </td>
+                </tr>
+                <tr style="{!IF(isDolar, '', 'display:none')}">
+                    <td colspan="2">
+                        <div class="conditions">
+                            O preço do presente pedido será pago em reais (R$) convertendo- se o valor especificado em US$ pela cotação PTAX da moeda Norte- Americana do Banco Central da véspera da data de vencimento.
+                        </div>
+                    </td>
+                </tr>
+            </table>
+            <table id="signatures" style="{!IF(itemCounter > 4, 'page-break-before:always', '')}">
+                <tr>
+                    <td colspan="2" style="text-align: center; padding-bottom: 40px;">De acordo com as condições desta cotação.</td>
+                </tr>
+                <tr>
+                    <td class="signature-td">
+                        <div class="signature-div">
+                            RTV: {!opportunity.nomeRTV__c}
+                        </div>
+                    </td>
+                    <td class="signature-td">
+                        <div class="signature-div">
+                            Cliente: {!opportunity.account.name}
+                        </div>
+                    </td>
+                </tr>
+            </table>
+            <table id="conditions">
+                <tr>
+                    <th colspan="2">Condições do Pedido de Venda</th>
+                </tr>
+                <tr>
+                    <td>
+                        <pre class="pre-conditions" style="padding-top:4px;">1) O presente pedido só considerar-se-à válido mediante a aprovação da sede da Stoller do Brasil Ltda.
+                            2) Este pedido poderá ser cancelado, parcial ou totalmente, caso haja impossibilidade na compra de matéria-prima necessária para a formulação dos produtos neles descritos, ou ainda: a. Por atos governamentais; b. Por insuficiência de crédito do comprador, necessário à cobertura do pedido; c. Por constatação de informação falsa na documentação de crédito apresentada pelo comprador.
+                            3) Reclamações por falta de peso ou volume só serão aceitas até 24 horas após recebimento.
+                            4) Para pedidos com frete FOB, os produtos viajam por conta e risco do comprado, salvo expressa disposição no corpo do pedido.
+                            5) Os produtos constantes deste pedido, destinam-se exclusivamente ao uso na agriculta e de conformidade com as especificações constantes de seus respectivos rótulos.</pre>
+                    </td>
+                    <td>
+                        <pre class="pre-conditions">6) Os títulos de crédito originados deste pedido, deverão ser liquidados no banco cobrador indicado, ou diretamente, em nome de Stoller do Brasil Ltda.
+                            7) No caso de representação comercial, haverá sempre um contrato de representação, nos termos da Lei 4.886/65, com as alterações da Lei 8.420/92, e, em nenhuma hipótese, haverá exclusividade de área, ou região, na venda dos produtos fabricados, ou comercializados por Stoller.
+                            8) Qualquer dúvida ou questão oriunda deste contrato será resolvida perante o Foro da comarca de Campinas, SP, com exclusão de qualquer outro, por mais privilegiado que seja.
+                            9) O signatário, devidamente identificado abaixo, declara ter os suficientes poderes de representação que lhe permitem firmar este instrumento de forma válida e eficaz e ainda, ter lido, compreendido e concordado com todas as condições e disposições constantes do pedido.
+                        </pre>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2" style="padding-left: 4px;"> 
+                        <span class="conditions-observations">OBS.: Em caso de atraso nos pagamentos dos títulos relativos a este pedido, o devedor concorda em pagar multa de 2% do valor do título de juros de 2% pro rata ao mês, a partir da data de vencimento.</span>
+                    </td>
+                </tr>
+            </table>
+            <table id="usd_signature" style="page-break-inside:avoid; {!IF(isDolar, '', 'display:none')}">
+                <tr>
+                    <td colspan="2" width="11%" class="usd_signature_labels">
+                        <b>Testemunha 1:</b>
+                    </td>
+                    <td colspan="2" width="39%" style="vertical-align: bottom;">
+                        <div style="border-bottom: 1px solid black; width: 90%;">
+                        </div>
+                    </td>
+                    <td colspan="2" width="11%" class="usd_signature_labels">
+                        <b>Testemunha 2:</b>
+                    </td>
+                    <td colspan="2" width="39%" style="vertical-align: bottom;">
+                        <div style="border-bottom: 1px solid black; width: 90%;">
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2" width="11%" class="usd_signature_labels">
+                        <b>Nome:</b>
+                    </td>
+                    <td colspan="2" width="39%" style="vertical-align: bottom;">
+                        <div style="border-bottom: 1px solid black; width: 90%;">
+                        </div>
+                    </td>
+                    <td colspan="2" width="11%" class="usd_signature_labels">
+                        <b>Nome:</b>
+                    </td>
+                    <td colspan="2" width="39%" style="vertical-align: bottom;">
+                        <div style="border-bottom: 1px solid black; width: 90%;">
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="8">
+                        <table>
+                            <tr>
+                                <td class="usd_signature_labels">
+                                    <b>RG:</b>
+                                </td>
+                                <td colspan="1" width="auto" style="vertical-align: bottom;">
+                                    <div class="usd_signature_divs">
+                                    </div>
+                                </td>
+                                <td class="usd_signature_labels usd_signature_cpf_label">
+                                    <b>CPF:</b>
+                                </td>
+                                <td colspan="1" width="auto" style="vertical-align: bottom;">
+                                    <div class="usd_signature_divs">
+                                    </div>
+                                </td>
+                                <td class="usd_signature_labels">
+                                    <b>RG:</b>
+                                </td>
+                                <td colspan="1" width="auto" style="vertical-align: bottom;">
+                                    <div class="usd_signature_divs">
+                                    </div>
+                                </td>
+                                <td class="usd_signature_labels usd_signature_cpf_label">
+                                    <b>CPF:</b>
+                                </td>
+                                <td colspan="1" width="auto" style="vertical-align: bottom;">
+                                    <div class="usd_signature_divs" style="width: 79% !important;">
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </body>
+</apex:page>

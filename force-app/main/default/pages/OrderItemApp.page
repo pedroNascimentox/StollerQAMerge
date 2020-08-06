@@ -1,0 +1,40 @@
+<apex:page sidebar="false" showHeader="false" standardStylesheets="false" standardController="Order" extensions="OrderItemAppController">
+    <html xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" ng-app="orderItemApp">
+
+    <head>
+        <title>Order Item App</title>
+        <apex:slds ></apex:slds>
+        <meta name="viewport" content="width=device-width, user-scalable=no" />
+        <apex:stylesheet value="{!$Resource.SweetalertCss}" />
+        <apex:stylesheet value="{!$Resource.OpportunityAppCss}" />
+        <script type="text/javascript">
+            window.URLS = {
+                orderItemList:              "{!URLFOR($Resource.OrderItemAppList)}",
+                lookupTemplate:             "{!URLFOR($Resource.LookupTemplate)}",
+                floatingButtonTemplate:     "{!URLFOR($Resource.FloatingButtonTemplate)}"
+            }
+        </script>
+        <apex:includeScript value="{! $Resource.Angular }" />
+        <apex:includeScript value="{! $Resource.AngularRoute }" />
+        <apex:includeScript value="{! $Resource.Jquery }" />
+        <apex:includeScript value="{! $Resource.SweetalertJs }" />
+        <apex:includeScript value="{! $Resource.PromisePolyfill }" />
+        <apex:includeScript value="{! $Resource.Lookups }" />
+        <apex:includeScript value="{! $Resource.FloatingButton }" />
+        <apex:includeScript value="{! $Resource.OrderItemAppJs }" />
+    </head>
+
+    <body>
+        <div class="app {{containerClass}} {{oppClass()}}" ng-controller="OrderItemCtrl as appCtrl">
+            <div class="container" ng-view="true"></div>            
+        </div>
+
+        <script>
+            var orderId             = '{!orderId}';
+            var orderNumber         = '{!orderNumber}';
+            var isCustomerService   = {!isCustomerService};
+        </script>
+
+    </body>
+    </html>
+</apex:page>

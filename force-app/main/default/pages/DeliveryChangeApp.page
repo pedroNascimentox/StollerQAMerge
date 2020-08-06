@@ -1,0 +1,106 @@
+<apex:page sidebar="false" showHeader="false" standardStylesheets="false" standardController="AlteracaoDataEntrega__c" extensions="DeliveryChangeAppController">
+    <html xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" ng-app="deliveryChangeApp">
+
+    <head>
+        <title>Delivery Change App</title>
+        <apex:slds ></apex:slds>
+        <meta name="viewport" content="width=device-width, user-scalable=no" />
+        <apex:stylesheet value="{!$Resource.SweetalertCss}" />
+        <apex:stylesheet value="{!$Resource.OpportunityAppCss}" />
+        <script type="text/javascript">
+            window.URLS = {
+                deliveryChangeAppOpportunityList:   "{!URLFOR($Resource.DeliveryChangeAppOpportunityList)}",
+                deliveryChangeAppHeader:            "{!URLFOR($Resource.DeliveryChangeAppHeader)}",
+                deliveryChangeAppShip:              "{!URLFOR($Resource.DeliveryChangeAppShip)}",
+                deliveryChangeAppSummary:           "{!URLFOR($Resource.DeliveryChangeAppSummary)}",
+                lookupTemplate:                     "{!URLFOR($Resource.LookupTemplate)}",
+                floatingButtonTemplate:             "{!URLFOR($Resource.FloatingButtonTemplate)}",
+                SEARCH_LOOKUP:                      "{!$RemoteAction.DeliveryChangeAppController.searchLookup}",
+            }
+        </script>
+        <apex:includeScript value="{! $Resource.Angular }" />
+        <apex:includeScript value="{! $Resource.AngularRoute }" />
+        <apex:includeScript value="{! $Resource.Jquery }" />
+        <apex:includeScript value="{! $Resource.SweetalertJs }" />
+        <apex:includeScript value="{! $Resource.PromisePolyfill }" />
+        <apex:includeScript value="{! $Resource.Lookups }" />
+        <apex:includeScript value="{! $Resource.FloatingButton }" />
+        <apex:includeScript value="{! $Resource.DeliveryChangeAppJs }" />
+    </head>
+
+    <body>
+        <div class="app {{containerClass}} {{oppClass()}}" ng-controller="DeliveryCtrl as appCtrl" ng-init="init()">
+            <header class="header sticky">
+                <table>
+                    <tr>
+                        <td ng-click="this[step.actionBackStep()]">
+                            <span class="slds-icon_container slds-icon-utility-back" title="Description of icon when needed">
+                                <svg class="slds-icon slds-current-color" aria-hidden="true">
+                                    <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="{!URLFOR($Asset.SLDS, 'assets/icons/utility-sprite/svg/symbols.svg#back')}">
+                                    </use>
+                                </svg>
+                                <span class="slds-assistive-text">Description of icon when needed</span>
+                            </span>
+                        </td>
+                        <td class="title">
+                            <span ng-bind-html="trustAsHtml(step.title)"></span>
+                        </td>
+                        <td rowspan="2">
+                            <div class="slds-progress-ring slds-progress-ring_active-step slds-progress-ring_large" ng-if="step">
+                                <div class="slds-progress-ring__progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="33">
+                                    <svg viewBox="-1 -1 2 2">
+                                        <path class="slds-progress-ring__path" id="slds-progress-ring-path-22" d="{{step.coords.r}}"></path>
+                                    </svg>
+                                </div>
+                                <div class="slds-progress-ring__content">{{step.indicator}}</div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <td class="sub-title">
+                            <div ng-show="containerClass < ' '">
+                                <span ng-bind-html="trustAsHtml(step.nextTitle)"></span>
+                            </div>
+                            <div ng-show="containerClass > ' '">
+                                <div class="slds-form-element">
+                                    <label class="slds-checkbox_toggle slds-grid">
+                                        <input type="checkbox" name="checkbox-toggle-6" value="checkbox-toggle-6" aria-describedby="checkbox-toggle-6" ng-model="summaryVision"
+                                        />
+                                        <span id="checkbox-toggle-6" class="slds-checkbox_faux_container" aria-live="assertive">
+                                            <span class="slds-checkbox_faux"></span>
+                                            <span class="slds-checkbox_on"></span>
+                                            <span class="slds-checkbox_off"></span>
+                                        </span>
+                                        <span class="slds-form-element__label slds-m-bottom_none">{{summaryVision ? 'Data x Produto' : 'Produto x Data'}}</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </td>
+                        <td></td>
+                    </tr>
+                </table>
+            </header>
+            <div class="container" ng-view="true"></div>
+            <footer class="footer sticky" ng-click="this[step.actionNextStep()]" ng-show="step.showNextStep()">
+                <table>
+                    <tr>
+                        <td class="action">
+                            <span ng-bind-html="trustAsHtml(step.actionNextStepText)"></span>
+                        </td>
+                    </tr>
+                </table>
+            </footer>
+
+        </div>
+
+        <script>
+            var oppId               = '{!opportunityId}';
+            var oppName             = '{!opportunityName}';
+            var isCustomerService   =  {!isCustomerService};
+        </script>
+
+    </body>
+
+    </html>
+</apex:page>

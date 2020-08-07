@@ -334,5 +334,21 @@ public with sharing class CancellingAppControllerTest {
         CancellingTypeData CancellingType = new CancellingTypeData('Teste', 'Teste');
         CancellingTypeData CancellingType1 = new CancellingTypeData('Teste', 'Teste', true);
 
+        CancellingAppController.RequestChunk requestChunk = new CancellingAppController.RequestChunk();
+        requestChunk.today = '1571922329000';
+        requestChunk.idDelivery = programacaoEntrega.Id;
+        System.assertEquals(false, CancellingAppController.getOpportunityListDataChunk(requestChunk).hasErrors);
+
+        //CancellingAppController.getOpportunityListDataOpp getOpp = new CancellingAppController.getOpportunityListDataOpp();
+        
+
+        System.assertEquals(false, CancellingAppController.getOpportunityListDataOpp(opportunity.Name).hasErrors);
+
+        List<CancellingAppController.CancellingData> lstCancellingData = new List<CancellingAppController.CancellingData> {cancellingData};
+
+        System.runAs(user1) {
+            System.assertEquals(false, CancellingAppController.insertCancelling(lstCancellingData).hasErrors);
+        }
+
     }
 }

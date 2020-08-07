@@ -1,5 +1,5 @@
 (function () {
-    var cancellingApp = angular.module('cancellingApp', ['ngRoute', 'sf-lookup', 'floating-button']);
+    var cancellingApp = angular.module('cancellingApp', ['ngRoute', 'sf-lookup', 'floating-button', 'infinite-scroll']);
 
     cancellingApp.config(function ($routeProvider) {
         $routeProvider.
@@ -147,6 +147,7 @@
             selectedProducts: [],
             selectedProductsId: [],
             selectedDeliveryId: [],
+            lastIndex : []
         };
         scope.filteredPaymentConditions = [];
         scope.ship = {
@@ -267,13 +268,13 @@
             return accountFilters;
         };
 
-        let accountReturnedFields = ['TipoCliente__c', 'RevendaAgenciadora__c', 'RatingPagamento__c', 'ShippingState', 'ShippingCity', 'NomeFazenda__c', 'ContribuinteICMS__c', 'ParentId', 'CNPJ__c', 'BloqueadoCredito__c'];
+        let accountReturnedFields = ['TipoCliente__c', 'RevendaAgenciadora__c', 'RatingPagamento__c', 'ShippingState', 'ShippingCity', 'NomeFazenda__c', 'ContribuinteICMS__c', 'ParentId', 'CNPJ__c'];
 
         scope.accountReturnedFieldsFunction = function () {
             return accountReturnedFields;
         };
 
-        scope.accountFields = "CNPJ__c;Name;ExternalId__c;NomeFazenda__c;ShippingCity;ShippingState;BloqueadoCredito__c";
+        scope.accountFields = "CNPJ__c;Name;ExternalId__c;NomeFazenda__c;ShippingCity;ShippingState;";
 
         scope.accountSubTitleFunction = function (fields) {
             // return accountSubTitle;
@@ -339,11 +340,25 @@
 
     cancellingApp.controller('OpportunityCtrl', ['$scope', '$http', function (scope, http) {
 
-        scope.callRemote = function () {
-            scope.isLoading = true;
-            callRemoteAction('CancellingAppController.getOpportunityListData', function (result, event) {
+        scope.isLoading = true;
+
+        scope.getNextRecords = function () {
+
+            let opp =  scope.base.lastIndex;
+            let last_element = opp[opp.length - 1];
+
+            let today = last_element.createdDate.toString();
+            let idDelivery = last_element.deliveryId;
+
+            callRemoteAction('CancellingAppController.getOpportunityListDataChunk',{
+                today: today,
+                idDelivery : idDelivery
+                
+            }, function (result, event) {
+
                 if (event.status) {
                     if (!result.hasErrors) {
+                        if(result.data.length < 1) return;
                         scope.base.arrOpp = result.data;
                         scope.base.arrOpp = scope.base.arrOpp.filter(function (opp) {
                             opp.products = opp.products.filter(function (product) {
@@ -389,7 +404,7 @@
                         });
                         console.log(scope.base.arrOpp);
                         let arrHelper = scope.base.arrOppFiltered;
-                        scope.base.arrOppFiltered = [];
+                        //scope.base.arrOppFiltered = [];
                         scope.base.arrOpp.forEach(function (item, index) {
                             let products = [];
                             let oldOpp = arrHelper.find(a => a.id == item.id);
@@ -441,10 +456,11 @@
                                 }
                                 item.selectedAccountParent = Object.assign({}, product.selectedAccount);
                                 product.selectedAccountParent = Object.assign({}, product.selectedAccount);
-                            });
+                            });                        
                             scope.base.arrOppFiltered.push({
                                 id: item.id,
                                 name: item.name,
+                                key: item.key,
                                 selectedAccountParent: Object.assign({}, item.selectedAccount),
                                 selectedAccount: item.selectedAccount,
                                 emitters: emitters,
@@ -454,10 +470,21 @@
                                 directorName: item.directorName,
                                 status: item.status,
                                 selected: selectedOpp,
-                                products: products
+                                products: products,
+                                createdDate: item.createdDate,
+                                deliveryId: item.deliveryId
                             });
                         });
+    
+                        var unique = scope.base.arrOppFiltered
+                                .map(e => e['key'])
+                                .map((e, i, final) => final.indexOf(e) === i && i)
+                                .filter(obj=> scope.base.arrOppFiltered[obj])
+                                .map(e => scope.base.arrOppFiltered[e]);
+    
+                        scope.base.arrOppFiltered = unique;
                         console.log(scope.base.arrOppFiltered);
+                        scope.base.lastIndex = scope.base.arrOppFiltered;
                         scope.isLoading = false;
                         scope.$apply();
                     } else {
@@ -470,8 +497,154 @@
                     scope.$apply();
                     Log.fire(null, '9845');
                 }
+
             });
         };
+
+        scope.callRemote = function () {    
+
+            callRemoteAction('CancellingAppController.getOpportunityListData', function (result, event) {
+                scope.returnOpp(result, event);
+            });
+        };
+             
+        scope.returnOpp = function (result, event){
+
+            if (event.status) {
+                if (!result.hasErrors) {
+                    scope.base.arrOpp = result.data;
+                    scope.base.arrOpp = scope.base.arrOpp.filter(function (opp) {
+                        opp.products = opp.products.filter(function (product) {
+                            let checks = {
+                                billingDate: true,
+                                deliveryDate: true,
+                                oppNumber: true,
+                                orderNumber: true,
+                                director: true,
+                                regional: true,
+                                rtvName: true,
+                                selectedAccount: true
+                            };
+                            if (scope.filter.selectedAccount != null) {
+                                checks.selectedAccount = scope.filter.selectedAccount.id == product.selectedAccount.id;
+                            }
+                            if (scope.filter.deliveryDate != null) {
+                                checks.deliveryDate = scope.filter.deliveryDate == formatDateFilter(product.oppCreatedDate);
+                            }
+                            if (scope.filter.rtvName != null) {
+                                checks.rtvName = product.hasOwnProperty('rtvName') && product.rtvName.toLowerCase().indexOf(scope.filter.rtvName.toLowerCase()) > -1;
+                            }
+                            if (scope.filter.regional != null) {
+                                checks.regional = product.hasOwnProperty('regionalName') && product.regionalName.toLowerCase().indexOf(scope.filter.regional.toLowerCase()) > -1;
+                            }
+                            
+                            if (scope.filter.oppNumber != null) {
+                                checks.oppNumber = product.hasOwnProperty('oppNumber') && product.oppNumber.toLowerCase().indexOf(scope.filter.oppNumber.toLowerCase()) > -1;
+                            }
+                            if (scope.filter.orderNumber != null) {
+                                checks.orderNumber = product.hasOwnProperty('orderNumber') && product.orderNumber.toLowerCase().indexOf(scope.filter.orderNumber.toLowerCase()) > -1;
+                            }
+                            let checkFinal = true;
+                            for (const key in checks) {
+                                checkFinal = checks[key];
+                                if (!checkFinal) {
+                                    break;
+                                }
+                            }
+                            return checkFinal;
+                        });
+                        return opp.products.length > 0;
+                    });
+                    console.log(scope.base.arrOpp);
+                    let arrHelper = scope.base.arrOppFiltered;
+                    scope.base.arrOppFiltered = [];
+                    scope.base.arrOpp.forEach(function (item, index) {
+                        let products = [];
+                        let oldOpp = arrHelper.find(a => a.id == item.id);
+                        let selected = false;
+                        let selectedOpp = false;
+                        let emitters = [];
+                        item.products.forEach(function (product, productIndex) {
+                            let currProd = void 0;
+                            if (oldOpp) {
+                                let oldProduct = oldOpp.products.find(a => a.id == product.id);
+                                if (oldProduct) {
+                                    selected = oldProduct.selected;
+                                    if (selected) {
+                                        selectedOpp = selected;
+                                    }
+                                }
+                            }
+                            if (!currProd) {
+                                currProd = Object.assign({}, product);
+                                currProd.selected = selected;
+                                currProd.receiver = [];
+                                currProd.shipper = [];
+                                currProd.allDates = [];
+                                currProd.allDates.push(formatDate(product.deliveryDate));
+                                currProd.allDates.push(formatDate(item.billingDate));
+                                products.push(currProd);
+                            } else {
+                                currProd.quantity += product.quantity;
+                                currProd.liter += product.liter;
+                                currProd.allDates.push(formatDate(product.deliveryDate));
+                                currProd.allDates.push(formatDate(item.billingDate));
+                            }
+                            if (product.receiver != null) {
+                                if (Object.keys(product.receiver).length == 0) {
+                                    product.receiver = null;
+                                }
+                            }
+                            let currReceiver = product.receiver;
+                            currProd.receiver.push(Object.assign({}, currReceiver));
+                            if (product.shipper != null) {
+                                if (Object.keys(product.shipper).length == 0) {
+                                    product.shipper = null;
+                                }
+                            }
+                            let currShipper = product.shipper;
+                            currProd.shipper.push(Object.assign({}, currShipper));
+                            if (emitters.indexOf(product.selectedAccount.name) < 0) {
+                                emitters.push(product.selectedAccount.name);
+                            }
+                            item.selectedAccountParent = Object.assign({}, product.selectedAccount);
+                            product.selectedAccountParent = Object.assign({}, product.selectedAccount);
+                        });
+                        scope.base.arrOppFiltered.push({
+                            id: item.id,
+                            name: item.name,
+                            key: item.key,
+                            selectedAccountParent: Object.assign({}, item.selectedAccount),
+                            selectedAccount: item.selectedAccount,
+                            emitters: emitters,
+                            rtvName: item.rtvName,
+                            billingDate: item.billingDate,
+                            regionalName: item.regionalName,
+                            directorName: item.directorName,
+                            status: item.status,
+                            selected: selectedOpp,
+                            products: products,
+                            createdDate: item.createdDate,
+                            deliveryId: item.deliveryId
+                        });
+                    });
+
+                    console.log(scope.base.arrOppFiltered);
+                    scope.base.lastIndex = scope.base.arrOppFiltered;
+
+                    scope.isLoading = false;
+                    scope.$apply();
+                } else {
+                    scope.isLoading = false;
+                    scope.$apply();
+                    Log.fire(result, '9834');
+                }
+            } else {
+                scope.isLoading = false;
+                scope.$apply();
+                Log.fire(null, '9845');
+            }
+        }   
 
         scope.callRemote();
 
@@ -664,6 +837,24 @@
             scope.filter.open = false;
             scope.callRemote();
         };
+
+
+        scope.searchOpp = function(){
+            var numOpp = $('#txtTermSearch').val();
+            console.log(numOpp);
+            scope.isLoading = true;
+            if (numOpp){
+                callRemoteAction('CancellingAppController.getOpportunityListDataOpp', '%'+numOpp+'%',function (result, event) {
+                    scope.returnOpp(result, event);
+                    scope.isLoading = false;
+                });
+            } else {
+                callRemoteAction('CancellingAppController.getOpportunityListData', function (result, event) {
+                    scope.returnOpp(result, event);
+                    scope.isLoading = false;
+                });
+            }
+        }
 
         scope.openAdvancedSearch = function (open) {
             scope.filter.open = open;
@@ -1679,25 +1870,23 @@ function sSize(VAR_text) {
 }
 
 function formatDate(date) {
-    if (typeof date == 'string') {
-        date = new Date(date + 'T12:00');
-    }
-    if (typeof date == 'number') {
+    if (typeof date == 'string' || typeof date == 'number') {
         date = new Date(date);
-        return sSize(date.getUTCDate()) + '/' + sSize(date.getUTCMonth() + 1) + '/' + date.getUTCFullYear();
     }
-    return sSize(date.getDate()) + '/' + sSize(date.getMonth() + 1) + '/' + date.getFullYear();
+    if (!(date instanceof Date)) {
+        return false;
+    }
+    return sSize(date.getUTCDate()) + '/' + sSize(date.getUTCMonth() + 1) + '/' + date.getUTCFullYear();
 }
 
 function formatDateForm(date) {
-    if (typeof date == 'string') {
-        date = new Date(date + 'T12:00');
-    }
-    if (typeof date == 'number') {
+    if (typeof date == 'string' || typeof date == 'number') {
         date = new Date(date);
-        return sSize(date.getUTCFullYear()) + '-' + sSize(date.getUTCMonth() + 1) + '-' + sSize(date.getUTCDate());
     }
-    return sSize(date.getFullYear()) + '-' + sSize(date.getMonth() + 1) + '-' + sSize(date.getDate());
+    if (!(date instanceof Date)) {
+        return false;
+    }
+    return sSize(date.getUTCFullYear()) + '-' + sSize(date.getUTCMonth() + 1) + '-' + sSize(date.getUTCDate());
 }
 
 function areDatesEqual(VAR_d1, VAR_d2) {

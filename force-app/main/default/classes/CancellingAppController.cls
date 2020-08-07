@@ -58,9 +58,25 @@ public class CancellingAppController {
         return userProfile.name.containsIgnoreCase(RTV_PROFILE_TERM);
     }
 
+    public static void fillMaps(List<ProgramacaoEntrega__c> listDelivery, List<ProgramacaoEntrega__c> listAllDelivery, Map<Id, List<ProgramacaoEntrega__c>> mapTerritoryToDelivery, Map<Id, List<TerritoryData>> mapAccToTerritory){
+
+         for(ProgramacaoEntrega__c delivery : listDelivery){
+
+            if(!mapTerritoryToDelivery.containsKey(delivery.Territorio__c)) {
+                mapTerritoryToDelivery.put(delivery.Territorio__c, new List<ProgramacaoEntrega__c>());
+            }
+            mapTerritoryToDelivery.get(delivery.Territorio__c).add(delivery);
+            listAllDelivery.add(delivery);
+
+            if (!mapAccToTerritory.containsKey(delivery.EmissorOrdem__r.Id)) {
+                mapAccToTerritory.put(delivery.EmissorOrdem__r.Id, new List<TerritoryData>());
+            }
+         }
+    }
+
     @RemoteAction
     public static ResponseOpportunityListData getOpportunityListData() {
-        ResponseOpportunityListData responseData;        
+               
         String currentProfileName;             
         List<ProgramacaoEntrega__c> listAllDelivery           = new List<ProgramacaoEntrega__c>();           
         Map<Id, List<ProgramacaoEntrega__c>> mapTerritoryToDelivery = new Map<Id, List<ProgramacaoEntrega__c>>();
@@ -71,43 +87,144 @@ public class CancellingAppController {
         System.debug('RESULT');
         System.debug([SELECT IdOpportunityLineItem__c, Id, StatusSAP__c, status__c FROM ProgramacaoEntrega__c]);
 
-        for(ProgramacaoEntrega__c delivery : [SELECT IdOpportunityLineItem__c, Produto__r.Id, Status__c, StatusSAP__c, Produto__r.Embalagem__c, 
-                                              Produto__r.Name, Produto__r.Sku__c, Litros__c, DataEntrega__c, NumeroPedidoCliente__c, PrecoLitro__c, Produto__r.Litragem__c,
-                                              QuantidadeProgramada__c, QuantidadeDisponivelSAP__c, PrecoListaReferencia__c, PrecoVenda__c, PrecoVendaJuros__c, DescontoConcedido__c, 
-                                              Juros__c, Confirmado__c, RecebedorOrdem__c, Cultura__c, Territorio__c, IdOportunidade__r.StageName,
-                                              Cultura__r.Id, Cultura__r.Name, RecebedorOrdem__r.Id, RecebedorOrdem__r.Name, RecebedorOrdem__r.CNPJ__c, 
-                                              RecebedorOrdem__r.ShippingCity, RecebedorOrdem__r.ShippingState, RecebedorOrdem__r.NomeFazenda__c, RecebedorOrdem__r.ParentId,
-                                              EmissorOrdem__r.Id, EmissorOrdem__r.Name, EmissorOrdem__r.CNPJ__c, EmissorOrdem__r.ShippingCity, 
-                                              EmissorOrdem__r.ShippingState, EmissorOrdem__r.NomeFazenda__c, EmissorOrdem__r.ParentId,
-                                              ClienteOrigemRemanejamento__r.Id, ClienteOrigemRemanejamento__r.Name, ClienteOrigemRemanejamento__r.CNPJ__c, ClienteOrigemRemanejamento__r.ShippingCity, 
-                                              ClienteOrigemRemanejamento__r.ShippingState, ClienteOrigemRemanejamento__r.NomeFazenda__c, ClienteOrigemRemanejamento__r.ParentId, 
-                                              IdOportunidade__r.Id, DataConfirmacao__c, IdOportunidade__r.CreatedDate,
-                                              IdOportunidade__r.NumeroOportunidade__c, TipoOrdem__c, DataFaturamento__c, Regional__r.Name, 
-                                              DiretorComercial__r.Name, NomeRTV__c, IdOportunidade__c, Produto__r.Multiplicidade__c, Regional__r.NomeRegional__c 
-                                              FROM ProgramacaoEntrega__c 
-                                              WHERE
-                                                StatusSAP__c NOT IN (
-                                                    'Faturado', 'Cancelado', 'Bloqueio de Remessa', 'Em Remessa'
-                                                ) AND (
-                                                    status__c = 'Liberado' OR status__c = 'Integrado' 
-                                                ) 
-                                                AND   IdOportunidade__c<> null
-                                              ORDER BY CreatedDate Desc
-                                              LIMIT 2500
-        ]){
-            if(!mapTerritoryToDelivery.containsKey(delivery.Territorio__c)) {
-                mapTerritoryToDelivery.put(delivery.Territorio__c, new List<ProgramacaoEntrega__c>());
-            }
-            mapTerritoryToDelivery.get(delivery.Territorio__c).add(delivery);
-            listAllDelivery.add(delivery);
+        List<ProgramacaoEntrega__c> listDelivery = [SELECT Id, IdOpportunityLineItem__c, Produto__r.Id, Status__c, StatusSAP__c, Produto__r.Embalagem__c, 
+                                                    Produto__r.Name, Produto__r.Sku__c, Litros__c, DataEntrega__c, NumeroPedidoCliente__c, PrecoLitro__c, Produto__r.Litragem__c,
+                                                    QuantidadeProgramada__c, QuantidadeDisponivelSAP__c, PrecoListaReferencia__c, PrecoVenda__c, PrecoVendaJuros__c, DescontoConcedido__c, 
+                                                    Juros__c, Confirmado__c, RecebedorOrdem__c, Cultura__c, Territorio__c, IdOportunidade__r.StageName,
+                                                    Cultura__r.Id, Cultura__r.Name, RecebedorOrdem__r.Id, RecebedorOrdem__r.Name, RecebedorOrdem__r.CNPJ__c, 
+                                                    RecebedorOrdem__r.ShippingCity, RecebedorOrdem__r.ShippingState, RecebedorOrdem__r.NomeFazenda__c, RecebedorOrdem__r.ParentId,
+                                                    EmissorOrdem__r.Id, EmissorOrdem__r.Name, EmissorOrdem__r.CNPJ__c, EmissorOrdem__r.ShippingCity, 
+                                                    EmissorOrdem__r.ShippingState, EmissorOrdem__r.NomeFazenda__c, EmissorOrdem__r.ParentId,
+                                                    ClienteOrigemRemanejamento__r.Id, ClienteOrigemRemanejamento__r.Name, ClienteOrigemRemanejamento__r.CNPJ__c, ClienteOrigemRemanejamento__r.ShippingCity, 
+                                                    ClienteOrigemRemanejamento__r.ShippingState, ClienteOrigemRemanejamento__r.NomeFazenda__c, ClienteOrigemRemanejamento__r.ParentId, 
+                                                    IdOportunidade__r.Id, DataConfirmacao__c, IdOportunidade__r.CreatedDate,
+                                                    IdOportunidade__r.NumeroOportunidade__c, TipoOrdem__c, DataFaturamento__c, Regional__r.Name, 
+                                                    DiretorComercial__r.Name, NomeRTV__c, IdOportunidade__c, Produto__r.Multiplicidade__c, Regional__r.NomeRegional__c, CreatedDate
+                                                    FROM ProgramacaoEntrega__c 
+                                                    WHERE
+                                                        StatusSAP__c NOT IN (
+                                                            'Faturado', 'Cancelado', 'Bloqueio de Remessa', 'Em Remessa'
+                                                        ) AND (
+                                                            status__c = 'Liberado' OR status__c = 'Integrado' 
+                                                        ) 
+                                                        AND   IdOportunidade__c<> null
+                                                        ORDER BY CreatedDate DESC, Id DESC
+                                                        LIMIT 2500];
 
-            if (!mapAccToTerritory.containsKey(delivery.EmissorOrdem__r.Id)) {
-                mapAccToTerritory.put(delivery.EmissorOrdem__r.Id, new List<TerritoryData>());
-            }
+        
+        fillMaps(listDelivery, listAllDelivery, mapTerritoryToDelivery, mapAccToTerritory);
 
-        }
+        return getReturn(listAllDelivery, mapTerritoryToDelivery, mapAccToTerritory); 
+    }
 
-        // system.debug(listAllDelivery);
+    @RemoteAction
+    public static ResponseOpportunityListData getOpportunityListDataChunk(RequestChunk req) {
+               
+        String currentProfileName;             
+        List<ProgramacaoEntrega__c> listAllDelivery           = new List<ProgramacaoEntrega__c>();           
+        Map<Id, List<ProgramacaoEntrega__c>> mapTerritoryToDelivery = new Map<Id, List<ProgramacaoEntrega__c>>();
+        Map<Id, List<TerritoryData>> mapAccToTerritory = new Map<Id, List<TerritoryData>>();
+
+        system.debug(currentProfileName);
+
+        Long data = Long.valueof(req.today);
+        Datetime dt = Datetime.newInstance(data);
+
+        System.debug('RESULT');
+        System.debug([SELECT IdOpportunityLineItem__c, Id, StatusSAP__c, status__c FROM ProgramacaoEntrega__c]);
+
+        List<ProgramacaoEntrega__c> listDelivery = [SELECT Id, IdOpportunityLineItem__c, Produto__r.Id, Status__c, StatusSAP__c, Produto__r.Embalagem__c, 
+                                                    Produto__r.Name, Produto__r.Sku__c, Litros__c, DataEntrega__c, NumeroPedidoCliente__c, PrecoLitro__c, Produto__r.Litragem__c,
+                                                    QuantidadeProgramada__c, QuantidadeDisponivelSAP__c, PrecoListaReferencia__c, PrecoVenda__c, PrecoVendaJuros__c, DescontoConcedido__c, 
+                                                    Juros__c, Confirmado__c, RecebedorOrdem__c, Cultura__c, Territorio__c, IdOportunidade__r.StageName,
+                                                    Cultura__r.Id, Cultura__r.Name, RecebedorOrdem__r.Id, RecebedorOrdem__r.Name, RecebedorOrdem__r.CNPJ__c, 
+                                                    RecebedorOrdem__r.ShippingCity, RecebedorOrdem__r.ShippingState, RecebedorOrdem__r.NomeFazenda__c, RecebedorOrdem__r.ParentId,
+                                                    EmissorOrdem__r.Id, EmissorOrdem__r.Name, EmissorOrdem__r.CNPJ__c, EmissorOrdem__r.ShippingCity, 
+                                                    EmissorOrdem__r.ShippingState, EmissorOrdem__r.NomeFazenda__c, EmissorOrdem__r.ParentId,
+                                                    ClienteOrigemRemanejamento__r.Id, ClienteOrigemRemanejamento__r.Name, ClienteOrigemRemanejamento__r.CNPJ__c, ClienteOrigemRemanejamento__r.ShippingCity, 
+                                                    ClienteOrigemRemanejamento__r.ShippingState, ClienteOrigemRemanejamento__r.NomeFazenda__c, ClienteOrigemRemanejamento__r.ParentId, 
+                                                    IdOportunidade__r.Id, DataConfirmacao__c, IdOportunidade__r.CreatedDate,
+                                                    IdOportunidade__r.NumeroOportunidade__c, TipoOrdem__c, DataFaturamento__c, Regional__r.Name, 
+                                                    DiretorComercial__r.Name, NomeRTV__c, IdOportunidade__c, Produto__r.Multiplicidade__c, Regional__r.NomeRegional__c, CreatedDate
+                                                    FROM ProgramacaoEntrega__c 
+                                                    WHERE (CreatedDate =: dt AND Id <: req.idDelivery 
+                                                        AND (StatusSAP__c NOT IN (
+                                                            'Faturado', 'Cancelado', 'Bloqueio de Remessa', 'Em Remessa'
+                                                        )) 
+                                                        AND (
+                                                            status__c = 'Liberado' OR status__c = 'Integrado' 
+                                                        ) 
+                                                        AND   (IdOportunidade__c<> null)
+                                                        
+                                                        AND   (idOportunidade__r.NumeroOportunidade__c LIKE :req.numOpp))
+
+                                                        OR (CreatedDate <: dt
+                                                        AND (StatusSAP__c NOT IN (
+                                                            'Faturado', 'Cancelado', 'Bloqueio de Remessa', 'Em Remessa'
+                                                        )) 
+                                                        AND (
+                                                            status__c = 'Liberado' OR status__c = 'Integrado')
+
+                                                        AND   (IdOportunidade__c<> null)    
+
+                                                        AND  (idOportunidade__r.NumeroOportunidade__c LIKE :req.numOpp))
+                                                        ORDER BY CreatedDate DESC, Id DESC
+                                                        LIMIT 500];
+
+        
+        fillMaps(listDelivery, listAllDelivery, mapTerritoryToDelivery, mapAccToTerritory);
+
+        return getReturn(listAllDelivery, mapTerritoryToDelivery, mapAccToTerritory); 
+    }
+
+    @RemoteAction
+    public static ResponseOpportunityListData getOpportunityListDataOpp(String numOpp) {
+               
+        String currentProfileName;             
+        List<ProgramacaoEntrega__c> listAllDelivery           = new List<ProgramacaoEntrega__c>();           
+        Map<Id, List<ProgramacaoEntrega__c>> mapTerritoryToDelivery = new Map<Id, List<ProgramacaoEntrega__c>>();
+        Map<Id, List<TerritoryData>> mapAccToTerritory = new Map<Id, List<TerritoryData>>();
+
+        system.debug(currentProfileName);
+
+        System.debug('RESULT');
+        System.debug([SELECT IdOpportunityLineItem__c, Id, StatusSAP__c, status__c FROM ProgramacaoEntrega__c]);
+
+        List<ProgramacaoEntrega__c> listDelivery = [SELECT Id, IdOpportunityLineItem__c, Produto__r.Id, Status__c, StatusSAP__c, Produto__r.Embalagem__c, 
+                                                    Produto__r.Name, Produto__r.Sku__c, Litros__c, DataEntrega__c, NumeroPedidoCliente__c, PrecoLitro__c, Produto__r.Litragem__c,
+                                                    QuantidadeProgramada__c, QuantidadeDisponivelSAP__c, PrecoListaReferencia__c, PrecoVenda__c, PrecoVendaJuros__c, DescontoConcedido__c, 
+                                                    Juros__c, Confirmado__c, RecebedorOrdem__c, Cultura__c, Territorio__c, IdOportunidade__r.StageName,
+                                                    Cultura__r.Id, Cultura__r.Name, RecebedorOrdem__r.Id, RecebedorOrdem__r.Name, RecebedorOrdem__r.CNPJ__c, 
+                                                    RecebedorOrdem__r.ShippingCity, RecebedorOrdem__r.ShippingState, RecebedorOrdem__r.NomeFazenda__c, RecebedorOrdem__r.ParentId,
+                                                    EmissorOrdem__r.Id, EmissorOrdem__r.Name, EmissorOrdem__r.CNPJ__c, EmissorOrdem__r.ShippingCity, 
+                                                    EmissorOrdem__r.ShippingState, EmissorOrdem__r.NomeFazenda__c, EmissorOrdem__r.ParentId,
+                                                    ClienteOrigemRemanejamento__r.Id, ClienteOrigemRemanejamento__r.Name, ClienteOrigemRemanejamento__r.CNPJ__c, ClienteOrigemRemanejamento__r.ShippingCity, 
+                                                    ClienteOrigemRemanejamento__r.ShippingState, ClienteOrigemRemanejamento__r.NomeFazenda__c, ClienteOrigemRemanejamento__r.ParentId, 
+                                                    IdOportunidade__r.Id, DataConfirmacao__c, IdOportunidade__r.CreatedDate,
+                                                    IdOportunidade__r.NumeroOportunidade__c, TipoOrdem__c, DataFaturamento__c, Regional__r.Name, 
+                                                    DiretorComercial__r.Name, NomeRTV__c, IdOportunidade__c, Produto__r.Multiplicidade__c, Regional__r.NomeRegional__c, CreatedDate
+                                                    FROM ProgramacaoEntrega__c 
+                                                    WHERE
+                                                        StatusSAP__c NOT IN (
+                                                            'Faturado', 'Cancelado', 'Bloqueio de Remessa', 'Em Remessa'
+                                                        ) AND (
+                                                            status__c = 'Liberado' OR status__c = 'Integrado' 
+                                                        ) 
+                                                        AND   IdOportunidade__c <> null
+                                                        AND   idOportunidade__r.NumeroOportunidade__c LIKE :numOpp
+                                                        ORDER BY CreatedDate DESC, Id DESC
+                                                        LIMIT 2500];
+
+        
+        fillMaps(listDelivery, listAllDelivery, mapTerritoryToDelivery, mapAccToTerritory);
+
+        return getReturn(listAllDelivery, mapTerritoryToDelivery, mapAccToTerritory); 
+    }
+
+
+    public static ResponseOpportunityListData getReturn(List<ProgramacaoEntrega__c> listAllDelivery,  Map<Id, List<ProgramacaoEntrega__c>> mapTerritoryToDelivery, Map<Id, List<TerritoryData>> mapAccToTerritory){
+
+        ResponseOpportunityListData responseData; 
         List<Id> deliveryRecordsIds = new List<Id>();
         List<Id> oppItemIds = new List<Id>();
 
@@ -337,6 +454,9 @@ public class CancellingAppController {
             opportunityData.rtvName            = delivery.NomeRTV__c;
             opportunityData.selectedAccount    = accountDataOpp;
             opportunityData.products           = mapIdToListProdData.get(idOpp);
+            opportunityData.createdDate        = delivery.CreatedDate;
+            opportunityData.deliveryId         = delivery.Id;
+            opportunityData.key                = idOpp + '_' + delivery.EmissorOrdem__r.Id;
 
             listOpportunityData.add(opportunityData);          
         }
@@ -1185,6 +1305,9 @@ public class CancellingAppController {
         String status;                  // ProgramacaoEntrega__c.IdOportunidade__r.Status
         String rtvName;                 // ProgramacaoEntrega__c.NomeRTV__c
         AccData selectedAccount;        // ProgramacaoEntrega__c.EmissorOrdem__c
+        DateTime createdDate;
+        String deliveryId;
+        String key;
         List<ProdData> products = new List<ProdData>();
 
         public OppData() {}
@@ -1280,6 +1403,12 @@ public class CancellingAppController {
         public String cancellingReason;
         public String cancellingDescription;
         public Integer quantity;
+    }
+
+    public class RequestChunk{
+        public String today;
+        public String idDelivery;
+        public String numOpp;
     }
 
 }

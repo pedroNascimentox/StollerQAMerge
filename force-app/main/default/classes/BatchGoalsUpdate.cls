@@ -50,7 +50,7 @@ global class BatchGoalsUpdate implements Database.Batchable<SObject>{
             }
         }
 
-        for (NotaFiscalItem__c nfItem : [SELECT Id, NotaFiscal__c, Notafiscal__r.CodigoCliente__c, NotaFiscal__r.Territorio__c, NotaFiscal__r.Regional__c, CriterioApuracao__c,
+        for (NotaFiscalItem__c nfItem : [SELECT Id, NotaFiscal__c, Notafiscal__r.CodigoCliente__c, NotaFiscal__r.TerritorioGerencial__c, NotaFiscal__r.Regional__c, CriterioApuracao__c,
                                          NotaFiscal__r.DataNF__c, NotaFiscal__r.TipoFat__c, CodigoMaterial__c, ValorUnitarioItem__c, ValorTotalUSD__c, Litros__c, Apuracao__c, ValorTotalItem__c 
                                          FROM NotaFiscalItem__c
                                          WHERE CriterioApuracao__c IN: mapCritToApuracao.keySet() AND NotaFiscal__r.TipoFat__c != 'ZBON' AND NotaFiscal__r.TipoFat__c != 'ZEXP' AND NotaFiscal__r.StatusCancelado__C = false]) { 
@@ -81,11 +81,11 @@ global class BatchGoalsUpdate implements Database.Batchable<SObject>{
         ProgramacaoEntregaHelper.disableTrigger();
         update programacoesEntregaToDisassociate;
         ProgramacaoEntregaHelper.enableTrigger();
-		
+
         //2020.05.08 - William Leite - Adicionado campo para valor à vista (Reais/Dólar)
+
         for (ProgramacaoEntrega__c delivery : [SELECT Id, Apuracao__c, Litros__c, ValorTotal__c, ValorTotalUSD__c, CriterioApuracao__c, StatusGlobalItem__c, ValorTotalSemJurosReais__c, ValorTotalSemJurosDolar__c
                                                FROM ProgramacaoEntrega__c WHERE CriterioApuracao__c IN: mapCritToApuracao.keySet() AND Status__c != 'Cancelado' 
-                                               //William Leite - Ignorar Devolução
                                                //AND Status__c != 'Solicitado Cancelamento' AND StatusSAP__c != 'Bloqueado Crédito' AND TipoOrdem__c != 'Bonificação'
                                                AND Status__c != 'Solicitado Cancelamento' AND StatusSAP__c != 'Bloqueado Crédito' AND TipoOrdem__c NOT IN ('Bonificação', 'Devolução com NF Cliente', 'Devolução com Nossa NF')
                                                AND StatusGlobalItem__c != 'C' AND StatusSAP__c != 'Faturado' AND StatusSAP__c != 'Faturado Parcial']) {
@@ -148,23 +148,10 @@ global class BatchGoalsUpdate implements Database.Batchable<SObject>{
             if (!mapCritToDeliveryList.get(Crit).isEmpty()) {
                 for (ProgramacaoEntrega__c delivery: mapCritToDeliveryList.get(Crit)){
                     if (delivery.StatusGlobalItem__c == 'C') {
-                        //2020.05.08 - William Leite - Alterado campos para valor à vista
-                        /*                        
-                        cart.somaCarteiraReal  += IntegrationUtils.checkDecimal(delivery.saldoBRL__c);
-                        cart.somaCarteiraDolar += IntegrationUtils.checkDecimal(delivery.SaldoUSD__c);
-                        cart.somaCarteiraLitro += IntegrationUtils.checkDecimal(delivery.saldoLitros__c);
-						*/
-						cart.somaCarteiraReal  += IntegrationUtils.checkDecimal(delivery.SaldoSemJurosReais__c);
+                        cart.somaCarteiraReal  += IntegrationUtils.checkDecimal(delivery.SaldoSemJurosReais__c);
                         cart.somaCarteiraDolar += IntegrationUtils.checkDecimal(delivery.SaldoSemJurosDolar__c);
                         cart.somaCarteiraLitro += IntegrationUtils.checkDecimal(delivery.saldoLitros__c);
-
                     } else {
-                        //2020.05.08 - William Leite - Alterado campos para valor à vista
-                        /*                      
-                        cart.somaCarteiraReal  += IntegrationUtils.checkDecimal(delivery.ValorTotal__c);
-                        cart.somaCarteiraDolar += IntegrationUtils.checkDecimal(delivery.ValorTotalUSD__c);
-                        cart.somaCarteiraLitro += IntegrationUtils.checkDecimal(delivery.Litros__c);
-						*/
                         cart.somaCarteiraReal  += IntegrationUtils.checkDecimal(delivery.ValorTotalSemJurosReais__c);
                         cart.somaCarteiraDolar += IntegrationUtils.checkDecimal(delivery.ValorTotalSemJurosDolar__c);
                         cart.somaCarteiraLitro += IntegrationUtils.checkDecimal(delivery.Litros__c);
@@ -254,12 +241,11 @@ global class BatchGoalsUpdate implements Database.Batchable<SObject>{
                 mapApNotaFiscal.put(inf.Apuracao__c, new List<String>{inf.NotaFiscal__r.TipoFat__c});
             }
         }
-        
-        //Custom setting
+
         TipoNotaFiscalCS__c customTipoNota = TipoNotaFiscalCS__c.getOrgDefaults();
 
         for (String Crit: mapCritToApuracao.keySet()){
-            for (Apuracao__c apuracao: mapCritToApuracao.get(Crit)){  
+            for (Apuracao__c apuracao: mapCritToApuracao.get(Crit)){                
 
                 Faturados fat = mapCritToFaturados.get(Crit);
                 CarteirasProgEntrega cartProgEntrega = mapCritToCartProgEntrega.get(Crit);
@@ -268,7 +254,7 @@ global class BatchGoalsUpdate implements Database.Batchable<SObject>{
 
                 atualizar = (fat != null || cartProgEntrega != null || /*cartOrdItem != null ||*/ cartEscoamento != null);
 
-                if(mapApNotaFiscal.containsKey(apuracao.Id)){
+                 if(mapApNotaFiscal.containsKey(apuracao.Id)){
 
                     for(String nf : mapApNotaFiscal.get(apuracao.Id)){
 
@@ -410,8 +396,8 @@ global class BatchGoalsUpdate implements Database.Batchable<SObject>{
                     apuracao.CarteiraReais__c  = 0;
                     apuracao.CarteiraDolar__c  = 0;
                     apuracao.CarteiraLitros__c = 0;
-                }
-
+                }        
+                        
                 apuracao.Atualizado__c = true;                    
                 apuracaoList.add(apuracao);
             }

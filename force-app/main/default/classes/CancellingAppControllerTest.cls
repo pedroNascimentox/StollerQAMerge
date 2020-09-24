@@ -40,7 +40,6 @@ public with sharing class CancellingAppControllerTest {
                 ProfileId = defaultUserProfile.Id
             ));
         insert user1;
-
         Territorio__c territorio = (Territorio__c)TestFactory.createSObject(new Territorio__c(
             RTV__c      = user1.Id,
             Gerente__c  = user1.Id,
@@ -134,7 +133,8 @@ public with sharing class CancellingAppControllerTest {
         insert order;
 
         Product2 product = (Product2)TestFactory.createSObject(new Product2(
-            tipo__c = 'Defensivo'
+            tipo__c = 'Defensivo',
+            SubFamily__c = 'MASTERFIX L GRAMINEAS'
         ));
         insert product;
 
@@ -200,6 +200,7 @@ public with sharing class CancellingAppControllerTest {
                     Name, 
                     NomeTerritorio__c, 
                     Regional__c,
+             		Regional__r.ACS__c,
                     Rtv__c, 
                     Rtv__r.Name, 
                     Gerente__c, 
@@ -242,7 +243,7 @@ public with sharing class CancellingAppControllerTest {
             // System.debug('UserInfo.getName() => ' + UserInfo.getName());
             CancellingAppController.getOpportunityListData();
         }
-
+       
         // System.debug(JSON.serializePretty(
             // System.assertEquals(false, 
             CancellingAppController.upsertDeliveryData(requestDeliveryData);//.hasErrors);
@@ -348,6 +349,22 @@ public with sharing class CancellingAppControllerTest {
 
         System.runAs(user1) {
             System.assertEquals(false, CancellingAppController.insertCancelling(lstCancellingData).hasErrors);
+        }
+
+    }
+
+    @isTest
+    public static void testProfiles(){
+
+        Profile managerUserProfile = [SELECT Id, Name FROM Profile WHERE Name = 'Diretoria Comercial'];
+        User user1 = (User)TestFactory.createSObject(
+            new User(
+                ProfileId = managerUserProfile.Id
+            ));
+        insert user1;
+
+        System.runAs(user1) {
+            CancellingAppController.getOpportunityListData();
         }
 
     }

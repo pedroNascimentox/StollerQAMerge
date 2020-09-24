@@ -132,6 +132,7 @@
                                                                                 value="check-{{$index+item.id+item.receiver.id}}"
                                                                                 ng-model="item.confirmed"
                                                                                 ng-checked="item.confirmed"
+                                                                                ng-change="validateConfirmedItem(item)"
                                                                                 />
                                                                             <label class="slds-checkbox__label"
                                                                                 for="check-{{$index+item.id+item.receiver.id}}">
@@ -174,6 +175,24 @@
                                                                             <h2>Atenção: Cliente com crédito bloqueado</h2>
                                                                         </div>
                                                                     </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="slds-grid">
+                                                            <div class="slds-col slds-size_3-of-3">
+                                                                <div class="slds-form-element">
+                                                                    <label class="slds-form-element__label slds-m-right_none"
+                                                                        for="numero-{{$index+item.id+item.receiver.id}}">RA</label>
+                                                                    <input type="text" id="numero-{{$index+item.id+item.receiver.id}}" placeholder="" class="slds-input" ng-model="item.registrationNumber" ng-change="uncheckRAandGuide(item)" />
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="slds-grid">
+                                                            <div class="slds-col slds-size_3-of-3">
+                                                                <div class="slds-form-element">
+                                                                    <label class="slds-form-element__label slds-m-right_none"
+                                                                        for="numero-{{$index+item.id+item.receiver.id}}">Guia</label>
+                                                                    <input type="text" id="numero-{{$index+item.id+item.receiver.id}}" placeholder="" class="slds-input" ng-model="item.guide" ng-change="uncheckRAandGuide(item)"/>
                                                                 </div>
                                                             </div>
                                                         </div>

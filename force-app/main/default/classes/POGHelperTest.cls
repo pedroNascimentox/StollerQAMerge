@@ -171,7 +171,8 @@ public with sharing class POGHelperTest {
                 Oportunidade__c     = opportunity.Id,
                 Regional__c         = regional.Id,
                 Territorio__c       = territorio.Id,
-                VendedorRTV__c      = user.Id
+                VendedorRTV__c      = user.Id,
+                TerritorioGerencial__c = territorio.Id
             )
         );
         insert notaFiscal1;
@@ -194,7 +195,8 @@ public with sharing class POGHelperTest {
                 NomeCliente__c = account.Id,
                 Produto__c          = product.Id,
                 // RSocial__c          = account.Id,
-                QuantidadeLitros__c = 13
+                QuantidadeLitros__c = 13,
+                TerritorioGerencial__c = territorio.Id
             )
         );
         EscoamentoHelper.disableTrigger();

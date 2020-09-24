@@ -2,6 +2,7 @@ public class DeliveryChangeAppController {
     
     public String opportunityId   {get; set;}
     public String opportunityName {get; set;}
+    public String opportunityCity {get; set;}
     
     public static final String DEFAULT_CURRENCY_CODE = 'BRL';
     public static String CUSTOMER_SERVICE_PROFILE_TERM;
@@ -52,6 +53,20 @@ public class DeliveryChangeAppController {
     public static Boolean isRTV(){
         return userProfile.name.containsIgnoreCase(RTV_PROFILE_TERM);
     }
+
+    // public static String getProfile(){
+    //     if(userProfile.name.containsIgnoreCase(CUSTOMER_SERVICE_PROFILE_TERM)){
+    //         return 'CS';
+    //     }else if(userProfile.name.containsIgnoreCase(GERENTE_REGIONAL_PROFILE_TERM)){
+    //         return 'GR';
+    //     }else if(userProfile.name.containsIgnoreCase(DIRETOR_COMERCIAL_PROFILE_TERM)){
+    //         return 'DC';
+    //     }else if(userProfile.name.containsIgnoreCase(ADMINISTRATOR_PROFILE_TERM)){
+    //         return 'AD';
+    //     }else{
+    //         return 'RT';
+    //     }
+    // } 
 
     private static void fillMaps(List<ProgramacaoEntrega__c> listDelivery, List<ProgramacaoEntrega__c> listAllDelivery, Map<Id, List<ProgramacaoEntrega__c>> mapTerritoryToDelivery, Map<Id, List<TerritoryData>> mapAccToTerritory){
 
@@ -122,8 +137,6 @@ public class DeliveryChangeAppController {
 
         system.debug(currentProfileName);
 
-        System.debug(numOpp);
-
         List<ProgramacaoEntrega__c> listDelivery = [SELECT Id, Name, IdOpportunityLineItem__c, Produto__r.Id, Status__c, StatusSAP__c, Produto__r.Embalagem__c, 
                                                    Produto__r.Name, Produto__r.Sku__c, Litros__c, DataEntrega__c, NumeroPedidoCliente__c, PrecoLitro__c, Produto__r.Litragem__c,
                                                    QuantidadeProgramada__c, PrecoListaReferencia__c, PrecoVenda__c, PrecoVendaJuros__c, DescontoConcedido__c, 
@@ -146,7 +159,7 @@ public class DeliveryChangeAppController {
                                                    AND   StatusSAP__c    != 'Faturado'
                                                    AND   StatusSAP__c    != 'Bloqueio de Remessa'
                                                    AND   StatusSAP__c    != 'Em Remessa'
-                                                   AND   (IdOrderItem__r.Order.OVSAP__c LIKE :numOpp OR idOportunidade__r.NumeroOportunidade__c LIKE : numOpp)
+                                                   AND   idOportunidade__r.NumeroOportunidade__c LIKE :numOpp
                                                    ORDER BY CreatedDate DESC, Id DESC
                                                    LIMIT 2500];
 
@@ -186,7 +199,6 @@ public class DeliveryChangeAppController {
                                                   DiretorComercial__r.Name, NomeRTV__c, IdOportunidade__c, Produto__r.Multiplicidade__c, Regional__r.NomeRegional__c, TaxaDolar__c, CreatedDate
                                                   FROM ProgramacaoEntrega__c 
                                                   WHERE (CreatedDate =: dt AND Id <: req.idDelivery 
-                                                  AND   (idOportunidade__r.NumeroOportunidade__c LIKE :req.numOpp)
                                                   AND   (Confirmado__c    = true)
                                                   AND   (IdOportunidade__c<> null)
                                                   AND   (Integrado__c     = true)
@@ -194,10 +206,10 @@ public class DeliveryChangeAppController {
                                                   AND   (StatusSAP__c    != 'Cancelado') 
                                                   AND   (StatusSAP__c    != 'Faturado')
                                                   AND   (StatusSAP__c    != 'Bloqueio de Remessa')
-                                                  AND   (StatusSAP__c    != 'Em Remessa'))
+                                                  AND   (StatusSAP__c    != 'Em Remessa')
+                                                  AND   (idOportunidade__r.NumeroOportunidade__c LIKE :req.numOpp))
 
                                                   OR    (CreatedDate <: dt 
-                                                  AND   (idOportunidade__r.NumeroOportunidade__c LIKE :req.numOpp)
                                                   AND   (Confirmado__c    = true)
                                                   AND   (IdOportunidade__c<> null)
                                                   AND   (Integrado__c     = true)
@@ -205,7 +217,8 @@ public class DeliveryChangeAppController {
                                                   AND   (StatusSAP__c    != 'Cancelado') 
                                                   AND   (StatusSAP__c    != 'Faturado')
                                                   AND   (StatusSAP__c    != 'Bloqueio de Remessa')
-                                                  AND   (StatusSAP__c    != 'Em Remessa'))
+                                                  AND   (StatusSAP__c    != 'Em Remessa')
+                                                  AND   (idOportunidade__r.NumeroOportunidade__c LIKE :req.numOpp))
                                                   ORDER BY CreatedDate DESC, Id DESC
                                                   LIMIT 500];
 
@@ -249,6 +262,69 @@ public class DeliveryChangeAppController {
                     responseData.data = fillResponseOpportunityListData(listAllDelivery, mapAccToTerritory, mapTerritoryToDelivery, deliveryIdToOrderItem, oppItemIds);   
                 }
             }
+            // else if(getProfile() == 'DC'){
+
+            //     Territorio__c territory = [SELECT Id, Diretor__c FROM Territorio__c WHERE Diretor__c =: UserInfo.getUserId() LIMIT 1];
+            //     List<ProgramacaoEntrega__c> listDelivery = new List<ProgramacaoEntrega__c>();
+            //     if(mapTerritoryToDelivery.containsKey(territory.Id)){
+            //         listDelivery.addAll(mapTerritoryToDelivery.get(territory.Id));
+            //     }
+            //     responseData = new ResponseOpportunityListData();  
+            //     if (!listDelivery.isEmpty()){
+                
+            //         Collection deliveryCollection = Collection.of(listDelivery);
+                    
+            //         deliveryRecordsIds = deliveryCollection.pluckIds(ProgramacaoEntrega__c.Id);
+            //         oppItemIds = deliveryCollection.pluckIds(ProgramacaoEntrega__c.IdOpportunityLineItem__c);
+
+            //         List<OrderItem> orderItems = [SELECT id, order.createdDate, order.OVSAP__c, orderId, programacaoEntrega__c 
+            //                                       FROM OrderItem 
+            //                                       WHERE programacaoEntrega__c IN :deliveryRecordsIds
+            //                                       AND   MOtivoRecusaItem__c != 'Z1'
+            //                                       AND   MOtivoRecusaItem__c != 'Z2'
+            //                                       AND   MOtivoRecusaItem__c != 'ZS'];
+                    
+            //         Map<Id, OrderItem> deliveryIdToOrderItem = new Map<Id, OrderItem>();
+
+            //         for(OrderItem orderItem : orderItems){
+            //             deliveryIdToOrderItem.put(orderItem.programacaoEntrega__c, orderItem);
+            //         }
+
+            //         responseData.data = fillResponseOpportunityListData(listDelivery, mapAccToTerritory, mapTerritoryToDelivery, deliveryIdToOrderItem, oppItemIds);
+            //     }
+            // }
+            // else if (getProfile() == 'GR'){
+
+            //     Territorio__c territory = [SELECT Id, Gerente__c FROM Territorio__c WHERE Gerente__c =: UserInfo.getUserId() LIMIT 1];
+            //     List<ProgramacaoEntrega__c> listDelivery = new List<ProgramacaoEntrega__c>();
+            //     if(mapTerritoryToDelivery.containsKey(territory.Id)){
+            //         listDelivery.addAll(mapTerritoryToDelivery.get(territory.Id));
+            //     }
+            //     responseData = new ResponseOpportunityListData();  
+            //     if (!listDelivery.isEmpty()){
+                
+            //         Collection deliveryCollection = Collection.of(listDelivery);
+                    
+            //         deliveryRecordsIds = deliveryCollection.pluckIds(ProgramacaoEntrega__c.Id);
+            //         oppItemIds = deliveryCollection.pluckIds(ProgramacaoEntrega__c.IdOpportunityLineItem__c);
+
+            //         List<OrderItem> orderItems = [SELECT id, order.createdDate, order.OVSAP__c, orderId, programacaoEntrega__c 
+            //                                       FROM OrderItem 
+            //                                       WHERE programacaoEntrega__c IN :deliveryRecordsIds
+            //                                       AND   MOtivoRecusaItem__c != 'Z1'
+            //                                       AND   MOtivoRecusaItem__c != 'Z2'
+            //                                       AND   MOtivoRecusaItem__c != 'ZS'];
+                    
+            //         Map<Id, OrderItem> deliveryIdToOrderItem = new Map<Id, OrderItem>();
+
+            //         for(OrderItem orderItem : orderItems){
+            //             deliveryIdToOrderItem.put(orderItem.programacaoEntrega__c, orderItem);
+            //         }
+
+            //         responseData.data = fillResponseOpportunityListData(listDelivery, mapAccToTerritory, mapTerritoryToDelivery, deliveryIdToOrderItem, oppItemIds);
+            //     }
+
+            // }
             else {                
                 
                 Territorio__c territory = [SELECT Id, RTV__c FROM Territorio__c WHERE RTV__c =: UserInfo.getUserId() LIMIT 1];
@@ -279,7 +355,6 @@ public class DeliveryChangeAppController {
 
                     responseData.data = fillResponseOpportunityListData(listDelivery, mapAccToTerritory, mapTerritoryToDelivery, deliveryIdToOrderItem, oppItemIds);
                 }
-
             }        
         } catch (Exception ex) {
             responseData = new ResponseOpportunityListData(ex);
@@ -753,7 +828,8 @@ public class DeliveryChangeAppController {
                             territorio__r.diretor__c,
                             territorio__r.diretor__r.name,
                             territorio__r.diretor__r.managerId,
-                            territorio__r.diretor__r.manager.name
+                            territorio__r.diretor__r.manager.name,
+                        	territorio__r.regional__r.ACS__c
                         FROM TerritoriosClientesConta__r
                     )
                 FROM Account
@@ -805,7 +881,8 @@ public class DeliveryChangeAppController {
                             territorio__r.diretor__c,
                             territorio__r.diretor__r.name,
                             territorio__r.diretor__r.managerId,
-                            territorio__r.diretor__r.manager.name
+                            territorio__r.diretor__r.manager.name,
+                        	territorio__r.regional__r.ACS__c
                         FROM TerritoriosClientesConta__r
                     )
                 FROM Account

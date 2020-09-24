@@ -324,11 +324,14 @@ public class CancelamentoHelper extends TriggerContext {
         }
         if(!requestCancelInsertList.isEmpty()){
             insert requestCancelInsertList.values();
+            
             for(String key : requestCancelInsertList.keySet()){
                 for(Cancelamento__c cancelling : keyToCancellingMap.get(key)){
                     cancelling.SolicitacaoCancelamento__c = requestCancelInsertList.get(key).Id;
+                    requestCancelInsertList.get(key).NumeroOrdemSAP__c += '; ' + (cancelling.Pedido__c != null ? cancelling.Pedido__r.OVSAP__c : '');
                 }
             }
+            
             // sendApprovalProcess(requestCancelInsertList.values());
         }
     }
@@ -370,7 +373,7 @@ public class CancelamentoHelper extends TriggerContext {
             GerenteRegional__c = cancellingData.GerenteRegional__c,
             RecebedorOrdem__c = cancellingData.RecebedorOrdem__c, 
             TipoOrdem__c = cancellingData.TipoOrdem__c,
-            NumeroOrdemSAP__c = (orderMap.containsKey(cancellingData.Pedido__c) ?orderMap.get(cancellingData.Pedido__c).OVSAP__c : null),
+            NumeroOrdemSAP__c = (orderMap.containsKey(cancellingData.Pedido__c) ? orderMap.get(cancellingData.Pedido__c).OVSAP__c : null),
             OrdemIntegrada__c = orderMap.containsKey(cancellingData.Pedido__c),
             StatusSAP__c = cancellingData.StatusSAP__c); 
             System.debug(JSON.serializePretty(requestCancelling));

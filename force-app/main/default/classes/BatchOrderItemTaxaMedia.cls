@@ -24,7 +24,7 @@ public with sharing class BatchOrderItemTaxaMedia implements Database.Batchable<
 
     public void finish(Database.BatchableContext bc) {
 
-        BatchProgramacaoEntregaTaxaMedia.run();
+        if(!Test.IsRunningTest()) BatchIncentivePlan.run();
         
     }
 

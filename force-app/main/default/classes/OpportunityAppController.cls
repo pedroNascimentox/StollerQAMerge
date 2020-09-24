@@ -384,7 +384,7 @@ public class OpportunityAppController {
                         emailAprovacaoPedidoCliente__c, gerenteRegional__c, setorAtividade__c, valorTotalIPI__c,
                         valorTotalIPIDolar__c, valorTotalMercadoriasRealSemIPI__c, account.shippingState, account.shippingCountry, account.tipoCliente__c,
                         dataInicioJuros__c, dataVencimento__c, NomeRTV__c, account.CanalDistribuicao__c, PercentualFrete__c,
-                        recebedorMercadoria__r.shippingState
+                        recebedorMercadoria__r.shippingState, AnalistaCustomerService__c 
                 FROM Opportunity
                 WHERE id = :opportunityId
             ];
@@ -690,7 +690,8 @@ public class OpportunityAppController {
                                                 territorio__r.diretor__r.name,
                                                 territorio__r.diretor__r.managerId,
                                                 territorio__r.diretor__r.manager.name,
-                                                VendaDireta__c
+                                                VendaDireta__c,
+                                                Territorio__r.regional__r.ACS__c
                                             FROM TerritoriosClientesConta__r
                                             )
                 FROM Account 
@@ -774,7 +775,7 @@ public class OpportunityAppController {
             List<Territorio__c> territoryDataList = [
                 SELECT  name, nomeTerritorio__c, id, gerente__c, gerente__r.name, 
                         diretor__c, diretor__r.name, regional__c, rtv__c, rtv__r.name, 
-                        diretor__r.managerId, diretor__r.manager.name
+                        diretor__r.managerId, diretor__r.manager.name, regional__r.ACS__c 
                 FROM Territorio__c 
                 WHERE Id = :opportunity.territorio__c
             ];
@@ -1012,6 +1013,7 @@ public class OpportunityAppController {
             if(opportunityDataRequest.territoryData != null){
                 opportunity.territorio__c       = opportunityDataRequest.territoryData.territory;
                 opportunity.gerenteRegional__c  = opportunityDataRequest.territoryData.managerId;
+                Opportunity.AnalistaCustomerService__c = opportunityDataRequest.territoryData.acsId;
                 opportunity.diretorComercial__c = opportunityDataRequest.territoryData.directorId;
                 opportunity.regional__c         = opportunityDataRequest.territoryData.regional;
                 opportunity.nomeRTV__c          = opportunityDataRequest.territoryData.rtvName;
@@ -1863,7 +1865,7 @@ public class OpportunityAppController {
                 SELECT  name, nomeTerritorio__c, id, gerente__c, 
                         gerente__r.name, diretor__c, diretor__r.name,
                         regional__c, rtv__c, rtv__r.name, diretor__r.managerId,
-                        diretor__r.manager.name
+                        diretor__r.manager.name, regional__r.ACS__c
                 FROM Territorio__c 
                 WHERE id =: customerTerritories[0].territorio__c
             ];
@@ -2158,6 +2160,7 @@ public class OpportunityAppController {
                             territorio__r.diretor__r.name,
                             territorio__r.diretor__r.managerId,
                             territorio__r.diretor__r.manager.name,
+                        	territorio__r.regional__r.ACS__c,
                             VendaDireta__c
                         FROM TerritoriosClientesConta__r
                     )
@@ -2494,7 +2497,7 @@ public class OpportunityAppController {
                 targetTerritory = [
                     SELECT  name, nomeTerritorio__c, id, gerente__c, gerente__r.name, 
                             diretor__c, diretor__r.name, regional__c, rtv__c, rtv__r.name,
-                            diretor__r.managerId, diretor__r.manager.name 
+                            diretor__r.managerId, diretor__r.manager.name , regional__r.ACS__c
                     FROM Territorio__c 
                     WHERE id =: targetTerritoryData
                 ];

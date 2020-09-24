@@ -12,4 +12,11 @@ public class ApuracaoHelper extends TriggerContext {
             }
         }
     }
+    public static void changeTipoApuracao(List<Apuracao__c> recordList){
+        for(apuracao__c apu: recordList){
+            if(apu.tipoApuracao1__c != 'Escoamento'){
+                apu.tipoApuracao1__c = 'Faturamento';
+            }
+        }
+    }
 }

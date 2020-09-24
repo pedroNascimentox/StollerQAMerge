@@ -1,48 +1,44 @@
-<apex:page controller="OpportunityPDFController" standardStylesheets="false" renderAs="PDF">
+<apex:page controller="OpportunityPDFController" standardStylesheets="false" applyBodyTag="false" renderAs="PDF">
+
     <head>
         <apex:stylesheet value="{!$Resource.OpportunityPDFStyle}" />
-
     </head>
-    
+
     <body>
         <div id="main_div">
-            <div class="header">
-                <table id="header">
-                    <tr>
-                        <td style="width: 15%;">
-                            <div>
-                                <apex:image url="{!$Resource.stoller_logo}" width="100px" height="75px">
-                                    
-                                </apex:image>
-                            </div>
-                        </td>
-                        <td style="width: 20%;">
-                            <p>
-                                Stoller do Brasil LTDA<br/>
-                                <br/>
-                                Matriz/Fábrica<br/>
-                                Rod SP 332, s/n, KM 138 - C. Postal 55<br/>
-                                Cosmópolis/SP - CEP 13150-030<br/>
-                                Telefone: 55 (19) 3872-8288 / Fax 55 (19) 3872-1200<br/>
-                                www.stoller.com.br | info@stoller.com.br
-                            </p>
-                        </td>
-                        <td>
-                            <p>
+            <table id="header">
+                <tr>
+                    <td style="width: 15%;">
+                        <div>
+                            <apex:image url="{!$Resource.stoller_logo}" width="100px" height="75px">
+
+                            </apex:image>
+                        </div>
+                    </td>
+                    <td style="width: 20%;">
+                        <p>
+                            Stoller do Brasil LTDA
                             <br/>
+                            <br/> Matriz/Fábrica
+                            <br/> Rod SP 332, s/n, KM 138 - C. Postal 55
+                            <br/> Cosmópolis/SP - CEP 13150-030
+                            <br/> Telefone: 55 (19) 3872-8288 / Fax 55 (19) 3872-1200
+                            <br/> www.stoller.com.br | info@stoller.com.br
+                        </p>
+                    </td>
+                    <td>
+                        <p>
                             <br/>
-                            Escritório<br/>
-                            Avenida Carlos Grimaldi, 1701 - Torre II - 3º Andar<br/>
-                            Campinas/SP - CEP 13091-908<br/>
-                            Telefone: 55 (19) 3707-1200 / Fax 55 (19) 3707-1201<br/>
-        
-                            </p>
-                        </td>
-                    </tr>
-                </table>
-            </div>
-            
-            
+                            <br/> Escritório
+                            <br/> Avenida Carlos Grimaldi, 1701 - Torre II - 3º Andar
+                            <br/> Campinas/SP - CEP 13091-908
+                            <br/> Telefone: 55 (19) 3707-1200 / Fax 55 (19) 3707-1201
+                            <br/>
+
+                        </p>
+                    </td>
+                </tr>
+            </table>
             <table id="opportunity_info">
                 <tr>
                     <th colspan="2">Oportunidade de Venda n° {!opportunityNumber} - Emissão: {!issueDateReplaced}</th>
@@ -100,7 +96,8 @@
                         <b>Cond. Pagamento:</b> {!opportunity.condicaoPagamento__r.Descricao__c}
                     </td>
                     <td colspan="1">
-                        <div style="{!IF(!hideDueDate, '', 'display:none')}"><b>Vencimento:</b> {!dueDate}</div>
+                        <div style="{!IF(!hideDueDate, '', 'display:none')}">
+                            <b>Vencimento:</b> {!dueDate}</div>
                     </td>
                 </tr>
             </table>
@@ -123,7 +120,7 @@
                         <td>
                             {!item.itemNumber}
                         </td>
-                        <td style="word-break:break-all;"> 
+                        <td style="word-break:break-all;">
                             {!item.sku}
                         </td>
                         <td>
@@ -136,12 +133,12 @@
                             {!item.quantity}
                         </td>
                         <td>
-                            {!item.liters}L
+                            {!item.liters}
                         </td>
                         <td class="td-break-all" style="{!IF(item.unitPriceFontSizeSmaller, 'font-size:10px;', '')}">
-                            {!IF(isDolar, 'US$', 'R$')} {!item.unitPrice}
+                            {!IF(isDolar, 'US$', 'R$')} {!item.salesPriceWithInterest}
                         </td>
-                        <td class="td-break-all"  style="{!IF(item.pricePerLiterFontSizeSmaller, 'font-size:10px;', '')}">
+                        <td class="td-break-all" style="{!IF(item.pricePerLiterFontSizeSmaller, 'font-size:10px;', '')}">
                             {!IF(isDolar, 'US$', 'R$')} {!item.pricePerLiter}
                         </td>
                         <td class="td-break-all" style="{!IF(item.totalPriceFontSizeSmaller, 'font-size:10px;', '')}">
@@ -159,11 +156,23 @@
             <table id="line_items_footer">
                 <tr style="page-break-inside: auto;">
                     <td colspan="1" style="page-break-inside: auto !important;">
-                        <b>Observações: </b>{!opportunity.observacaoPDF__c}
+                        <b>Observações: </b>
+                        <div style="font-size:10px;">{!opportunity.observacaoPDF__c}</div>
                     </td>
                     <td colspan="1" style="vertical-align: top;">
-                        <p style="margin: 0;width:100%;"><div style="{!IF(itemCounter <= 4, 'display:none', 'display:inline-block')}"><b>Valor Total dos Produtos:</b></div><div style="{!IF(itemCounter <= 4, 'display:none', 'text-align:right;display:inline-block;float:right;')}"> {!IF(isDolar, 'US$', 'R$')} {!totalAmountWithoutIPI}</div></p>
-                        <p style="margin: 0;width:100%;"><div style="display:inline-block;"><b>Valor Total dos Produtos com IPI:</b></div><div style="text-align:right;display:inline-block;float:right;"> {!IF(isDolar, 'US$', 'R$')} {!totalAmount}</div></p>
+                        <p style="margin: 0;width:100%;">
+                            <div style="{!IF(itemCounter <= 4, 'display:none', 'display:inline-block')}">
+                                <b>Valor Total dos Produtos:</b>
+                            </div>
+                            <div style="{!IF(itemCounter <= 4, 'display:none', 'text-align:right;display:inline-block;float:right;')}">
+                                {!IF(isDolar, 'US$', 'R$')} {!totalAmountWithoutIPI}</div>
+                        </p>
+                        <p style="margin: 0;width:100%;">
+                            <div style="display:inline-block;">
+                                <b>Valor Total dos Produtos com IPI:</b>
+                            </div>
+                            <div style="text-align:right;display:inline-block;float:right;"> {!IF(isDolar, 'US$', 'R$')} {!totalAmount}</div>
+                        </p>
                     </td>
                 </tr>
                 <tr>
@@ -174,9 +183,12 @@
                 <tr style="{!IF(isVendor, '', 'display:none')}">
                     <td colspan="2">
                         <div id="payment_conditions" class="conditions">
-                            Financiamento realizado pelo cliente junto à instituição financeira com a interveniência da Stoller, com encargos de <b>{!opportunity.condicaoPagamento__r.jurosComercialFinanceiro__c}%</b>
-                            que será cobrado a partir de <b>{!IF(sinceDate != null, sinceDate, issueDate)}</b> até o vencimento em <b>{!vendorDueDate}</b>. A quitação desta compra somente ocorrerá quando o
-                            cliente efetuar o pagamento do preço com juros à instituição responsável pelo financiamento.
+                            Financiamento realizado pelo cliente junto à instituição financeira com a interveniência da Stoller, com encargos de
+                            <b>{!opportunity.condicaoPagamento__r.jurosComercialFinanceiro__c}%</b>
+                            que será cobrado a partir de
+                            <b>{!IF(sinceDate != null, sinceDate, issueDate)}</b> até o vencimento em
+                            <b>{!vendorDueDate}</b>. A quitação desta compra somente ocorrerá quando o cliente efetuar o pagamento
+                            do preço com juros à instituição responsável pelo financiamento.
                         </div>
                     </td>
                 </tr>
@@ -197,29 +209,152 @@
                 <tr style="{!IF(isDolar, '', 'display:none')}">
                     <td colspan="2">
                         <div class="conditions">
-                            O preço do presente pedido será pago em reais (R$) convertendo- se o valor especificado em US$ pela cotação PTAX da moeda Norte- Americana do Banco Central da véspera da data de vencimento.
+                            O preço do presente pedido será pago em reais (R$) convertendo- se o valor especificado em US$ pela cotação PTAX da moeda
+                            Norte- Americana do Banco Central da véspera da data de vencimento.
                         </div>
                     </td>
                 </tr>
             </table>
-            <table id="signatures" style="{!IF(itemCounter > 4, 'page-break-before:always', '')}">
-                <tr>
-                    <td colspan="2" style="text-align: center; padding-bottom: 40px;">De acordo com as condições desta cotação.</td>
-                </tr>
-                <tr>
-                    <td class="signature-td">
-                        <div class="signature-div">
-                            RTV: {!opportunity.nomeRTV__c}
-                        </div>
-                    </td>
-                    <td class="signature-td">
-                        <div class="signature-div">
-                            Cliente: {!opportunity.account.name}
-                        </div>
-                    </td>
-                </tr>
-            </table>
-            <table id="conditions">
+
+            <div id="all_signatures" style="page-break-inside:avoid;">
+                <table id="signatures">
+                    <tr>
+                        <td colspan="2" style="text-align: center; padding-bottom: 40px;">De acordo com as condições desta cotação.</td>
+                    </tr>
+                    <tr>
+                        <td class="signature-td">
+                            <div class="ds_anchor_white">
+                                \s1\
+                            </div>
+                        </td>
+                        <td class="signature-td">
+                            <div class="ds_anchor_white">
+                                \s2\
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="signature-td">
+                            <div class="signature-div">
+                                RTV: {!opportunity.nomeRTV__c}
+                            </div>
+                        </td>
+                        <td class="signature-td">
+                            <div class="signature-div">
+                                Cliente: {!opportunity.account.name}
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+
+                <br></br>
+                <table id="usd_signature">
+                    <tr>
+                        <td colspan="2" width="11%"></td>
+                        <td colspan="2" width="39%">
+                            <div class="ds_anchor_white_witness">
+                                \s3\
+                            </div>
+                        </td>
+                        <td colspan="2" width="11%"></td>
+                        <td colspan="2" width="39%">
+                            <div class="ds_anchor_white_witness">
+                                \s4\
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" width="11%" class="usd_signature_labels">
+                            <b>Testemunha 1:</b>
+                        </td>
+                        <td colspan="2" width="39%" style="vertical-align: bottom;">
+                            <div style="border-bottom: 1px solid black; width: 90%;">
+                            </div>
+                        </td>
+                        <td colspan="2" width="11%" class="usd_signature_labels">
+                            <b>Testemunha 2:</b>
+                        </td>
+                        <td colspan="2" width="39%" style="vertical-align: bottom;">
+                            <div style="border-bottom: 1px solid black; width: 90%;">
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" width="11%" class="usd_signature_labels">
+                            <b>Nome:</b>
+                        </td>
+                        <td colspan="2" width="39%" style="vertical-align: bottom;">
+                            <div style="border-bottom: 1px solid black; width: 90%;">
+                                <div class="witness-div">
+                                    {!opportunity.GerenteRegional__r.Name}
+                                </div>
+                            </div>
+                        </td>
+                        <td colspan="2" width="11%" class="usd_signature_labels">
+                            <b>Nome:</b>
+                        </td>
+                        <td colspan="2" width="39%" style="vertical-align: bottom;">
+                            <div style="border-bottom: 1px solid black; width: 90%;">
+                                <div class="witness-div">
+                                    {!opportunity.AnalistaCustomerService__r.Name}
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="8">
+                            <table>
+                                <tr>
+                                    <td class="usd_signature_labels">
+                                        <b>RG:</b>
+                                    </td>
+                                    <td colspan="1" width="auto" style="vertical-align: bottom;">
+                                        <div class="usd_signature_divs">
+                                            <div class="witness-div">
+                                                {!opportunity.GerenteRegional__r.RG__c}
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="usd_signature_labels usd_signature_cpf_label">
+                                        <b>CPF:</b>
+                                    </td>
+                                    <td colspan="1" width="auto" style="vertical-align: bottom;">
+                                        <div class="usd_signature_divs">
+                                            <div class="witness-div">
+                                                {!opportunity.GerenteRegional__r.CPF__c}
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="usd_signature_labels">
+                                        <b>RG:</b>
+                                    </td>
+                                    <td colspan="1" width="auto" style="vertical-align: bottom;">
+                                        <div class="usd_signature_divs">
+                                            <div class="witness-div">
+                                                {!opportunity.AnalistaCustomerService__r.RG__c}
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="usd_signature_labels usd_signature_cpf_label">
+                                        <b>CPF:</b>
+                                    </td>
+                                    <td colspan="1" width="auto" style="vertical-align: bottom;">
+                                        <div class="usd_signature_divs" style="width: 79% !important;">
+                                            <div class="witness-div">
+                                                {!opportunity.AnalistaCustomerService__r.CPF__c}
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+
+            <br></br>
+            <table id="conditions" style="page-break-inside:avoid;">
                 <tr>
                     <th colspan="2">Condições do Pedido de Venda</th>
                 </tr>
@@ -240,78 +375,9 @@
                     </td>
                 </tr>
                 <tr>
-                    <td colspan="2" style="padding-left: 4px;"> 
-                        <span class="conditions-observations">OBS.: Em caso de atraso nos pagamentos dos títulos relativos a este pedido, o devedor concorda em pagar multa de 2% do valor do título de juros de 2% pro rata ao mês, a partir da data de vencimento.</span>
-                    </td>
-                </tr>
-            </table>
-            <table id="usd_signature" style="page-break-inside:avoid; {!IF(isDolar, '', 'display:none')}">
-                <tr>
-                    <td colspan="2" width="11%" class="usd_signature_labels">
-                        <b>Testemunha 1:</b>
-                    </td>
-                    <td colspan="2" width="39%" style="vertical-align: bottom;">
-                        <div style="border-bottom: 1px solid black; width: 90%;">
-                        </div>
-                    </td>
-                    <td colspan="2" width="11%" class="usd_signature_labels">
-                        <b>Testemunha 2:</b>
-                    </td>
-                    <td colspan="2" width="39%" style="vertical-align: bottom;">
-                        <div style="border-bottom: 1px solid black; width: 90%;">
-                        </div>
-                    </td>
-                </tr>
-                <tr>
-                    <td colspan="2" width="11%" class="usd_signature_labels">
-                        <b>Nome:</b>
-                    </td>
-                    <td colspan="2" width="39%" style="vertical-align: bottom;">
-                        <div style="border-bottom: 1px solid black; width: 90%;">
-                        </div>
-                    </td>
-                    <td colspan="2" width="11%" class="usd_signature_labels">
-                        <b>Nome:</b>
-                    </td>
-                    <td colspan="2" width="39%" style="vertical-align: bottom;">
-                        <div style="border-bottom: 1px solid black; width: 90%;">
-                        </div>
-                    </td>
-                </tr>
-                <tr>
-                    <td colspan="8">
-                        <table>
-                            <tr>
-                                <td class="usd_signature_labels">
-                                    <b>RG:</b>
-                                </td>
-                                <td colspan="1" width="auto" style="vertical-align: bottom;">
-                                    <div class="usd_signature_divs">
-                                    </div>
-                                </td>
-                                <td class="usd_signature_labels usd_signature_cpf_label">
-                                    <b>CPF:</b>
-                                </td>
-                                <td colspan="1" width="auto" style="vertical-align: bottom;">
-                                    <div class="usd_signature_divs">
-                                    </div>
-                                </td>
-                                <td class="usd_signature_labels">
-                                    <b>RG:</b>
-                                </td>
-                                <td colspan="1" width="auto" style="vertical-align: bottom;">
-                                    <div class="usd_signature_divs">
-                                    </div>
-                                </td>
-                                <td class="usd_signature_labels usd_signature_cpf_label">
-                                    <b>CPF:</b>
-                                </td>
-                                <td colspan="1" width="auto" style="vertical-align: bottom;">
-                                    <div class="usd_signature_divs" style="width: 79% !important;">
-                                    </div>
-                                </td>
-                            </tr>
-                        </table>
+                    <td colspan="2" style="padding-left: 4px;">
+                        <span class="conditions-observations">OBS.: Em caso de atraso nos pagamentos dos títulos relativos a este pedido, o devedor concorda em
+                            pagar multa de 2% do valor do título de juros de 2% pro rata ao mês, a partir da data de vencimento.</span>
                     </td>
                 </tr>
             </table>

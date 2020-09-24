@@ -133,12 +133,17 @@ public class NotaFiscalHelperTest {
                 Regional__c         = regional.Id,
                 Territorio__c       = territorio.Id,
                 VendedorRTV__c      = user.Id,
-                DataNF__c           = Date.today()
+                DataNF__c           = Date.today(),
+                TerritorioGerencial__c = territorio.Id
             )
         );
         insert notaFiscal;
 
-        
+        System.assertEquals(
+            20.00, 
+            [SELECT Id, TaxaDolarFaturamento__c FROM NotaFiscal__c WHERE Id = :notaFiscal.Id].TaxaDolarFaturamento__c,
+            'BEFORE_INSERT set TaxaDolarFaturamento__c on NotaFiscal__c'
+        );
     }
 
     @isTest
@@ -304,7 +309,8 @@ public class NotaFiscalHelperTest {
                 Regional__c         = regional.Id,
                 Territorio__c       = territorio.Id,
                 VendedorRTV__c      = user.Id,
-                DataNF__c           = Date.today()
+                DataNF__c           = Date.today(),
+                TerritorioGerencial__c = territorio.Id
             )
         );
         insert notaFiscal;
@@ -507,7 +513,8 @@ public class NotaFiscalHelperTest {
                 VendedorRTV__c      = user.Id,
                 DataNF__c           = Date.today(),
                 ClientePlanoIncentivo__c = cpi.Id,
-                ValorTotalNota__c = 100
+                ValorTotalNota__c = 100,
+                TerritorioGerencial__c = territorio.Id
             )
         );
         insert notaFiscal;
@@ -523,7 +530,8 @@ public class NotaFiscalHelperTest {
                 VendedorRTV__c      = user.Id,
                 DataNF__c           = Date.today(),
                 ClientePlanoIncentivo__c = cpi2.Id,
-                ValorTotalNotaUSD__c = 100
+                ValorTotalNotaUSD__c = 100,
+                TerritorioGerencial__c = territorio.Id
             )
         );
         insert notaFiscal2;
@@ -705,7 +713,8 @@ public class NotaFiscalHelperTest {
                 Oportunidade__c     = opportunity.Id,
                 Regional__c         = regional.Id,
                 Territorio__c       = territorio.Id,
-                VendedorRTV__c      = user.Id
+                VendedorRTV__c      = user.Id,
+                TerritorioGerencial__c = territorio.Id
             )
         );
         insert notaFiscal1;
@@ -727,7 +736,8 @@ public class NotaFiscalHelperTest {
             new Escoamento__c(
                 Produto__c     = product.Id,
                 NomeCliente__c = account.Id,
-                Quantidade__c  = 6
+                Quantidade__c  = 6,
+                TerritorioGerencial__c = territorio.Id
             )
         );
         escoamento3List.add(escoamento1);
@@ -735,7 +745,8 @@ public class NotaFiscalHelperTest {
             new Escoamento__c(
                 Produto__c     = product.Id,
                 NomeCliente__c = account.Id,
-                Quantidade__c  = 13
+                Quantidade__c  = 13,
+                TerritorioGerencial__c = territorio.Id
             )
         );
         escoamento3List.add(escoamento2);
@@ -744,7 +755,8 @@ public class NotaFiscalHelperTest {
             new Escoamento__c(
                 Produto__c     = product.Id,
                 NomeCliente__c = account.Id,
-                Quantidade__c  = 27
+                Quantidade__c  = 27,
+                TerritorioGerencial__c = territorio.Id
             )
         );
         escoamento3List.add(escoamento3);

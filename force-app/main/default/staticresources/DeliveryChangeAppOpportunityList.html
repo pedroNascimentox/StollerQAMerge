@@ -104,8 +104,8 @@
             </div>
         </div>
     </div>
-    <div class="search-wrapper">
-        <div class="search-container">
+    <div class="search-wrapper" style="height: initial; min-height: 60px;">
+        <div class="search-container" style="height: 40px;">
             <div class="wrapper-icon-left">
                 <span class="slds-icon_container slds-icon-utility-search" title="Buscar">
                     <svg class="slds-icon slds-current-color" aria-hidden="true">
@@ -134,19 +134,25 @@
                 </span>
             </div>
         </div>
+        <div class="wrapper-icon-right" style="text-align: right;">
+            <button class="slds-button slds-button_brand" style="margin: 5px; cursor:pointer;" ng-click="this[searchOpp()]">Filtrar</button>
+        </div>
     </div>
     <div class="wrapper-products">
         <div class="slds-grid">
-            <div class="slds-col slds-size_12-of-12">
+            <div class="slds-col slds-size_12-of-12" infinite-scroll="this[getNextRecords()]" infinite-scroll-distance='3'
+                infinite-scroll-use-document-bottom="true" >
                 <div class="slds-section slds-is-open opp-item {{ isSelectedOpp(opp.id) }}"
-                    ng-repeat="opp in base.arrOppFiltered | filter: termSearch | orderBy: 'name':true">
+                    ng-repeat="opp in base.arrOppFiltered | orderBy: 'name':true">
                     <h3 class="slds-section__title slds-theme_shade dblock section-opp">
                         <div class="slds-grid slds-wrap">
                             <div class="slds-col slds-size_10-of-12">
                                 <span class="slds-p-horizontal_small" title="{{opp.name}}">
-                                    OV-{{opp.name}} <small class="slds-p-horizontal_small">{{opp.selectedAccount.name}}</small>
+                                    OV-{{opp.name}} <small class="slds-p-horizontal_small">{{opp.selectedAccount.name}} </small>
                                 </span>
+                                <span class="slds-p-horizontal_small dblock">{{opp.selectedAccount.city}}</span>
                                 <small class="slds-p-horizontal_small dblock">{{opp.rtvName}}</small>
+                                
                             </div>
                             <div class="slds-col slds-size_2-of-12">
                                 <div class="slds-form-element">

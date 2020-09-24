@@ -22,7 +22,7 @@ public class CancellingAppController {
             WHERE id = :UserInfo.getProfileId()
             LIMIT 1
         ]; 
-
+        
         CUSTOMER_SERVICE_PROFILE_TERM  = Label.CustomerServiceProfileTerm;
         RTV_PROFILE_TERM               = Label.RTVProfileTerm;
         GERENTE_REGIONAL_PROFILE_TERM  = Label.RegionalManagerProfileTerm;
@@ -110,8 +110,8 @@ public class CancellingAppController {
                                                         AND   IdOportunidade__c<> null
                                                         ORDER BY CreatedDate DESC, Id DESC
                                                         LIMIT 2500];
-
         
+
         fillMaps(listDelivery, listAllDelivery, mapTerritoryToDelivery, mapAccToTerritory);
 
         return getReturn(listAllDelivery, mapTerritoryToDelivery, mapAccToTerritory); 
@@ -120,18 +120,13 @@ public class CancellingAppController {
     @RemoteAction
     public static ResponseOpportunityListData getOpportunityListDataChunk(RequestChunk req) {
                
-        String currentProfileName;             
         List<ProgramacaoEntrega__c> listAllDelivery           = new List<ProgramacaoEntrega__c>();           
         Map<Id, List<ProgramacaoEntrega__c>> mapTerritoryToDelivery = new Map<Id, List<ProgramacaoEntrega__c>>();
         Map<Id, List<TerritoryData>> mapAccToTerritory = new Map<Id, List<TerritoryData>>();
 
-        system.debug(currentProfileName);
 
         Long data = Long.valueof(req.today);
         Datetime dt = Datetime.newInstance(data);
-
-        System.debug('RESULT');
-        System.debug([SELECT IdOpportunityLineItem__c, Id, StatusSAP__c, status__c FROM ProgramacaoEntrega__c]);
 
         List<ProgramacaoEntrega__c> listDelivery = [SELECT Id, IdOpportunityLineItem__c, Produto__r.Id, Status__c, StatusSAP__c, Produto__r.Embalagem__c, 
                                                     Produto__r.Name, Produto__r.Sku__c, Litros__c, DataEntrega__c, NumeroPedidoCliente__c, PrecoLitro__c, Produto__r.Litragem__c,
@@ -154,9 +149,7 @@ public class CancellingAppController {
                                                         AND (
                                                             status__c = 'Liberado' OR status__c = 'Integrado' 
                                                         ) 
-                                                        AND   (IdOportunidade__c<> null)
-                                                        
-                                                        AND   (idOportunidade__r.NumeroOportunidade__c LIKE :req.numOpp))
+                                                        AND   (IdOportunidade__c<> null))
 
                                                         OR (CreatedDate <: dt
                                                         AND (StatusSAP__c NOT IN (
@@ -165,11 +158,9 @@ public class CancellingAppController {
                                                         AND (
                                                             status__c = 'Liberado' OR status__c = 'Integrado')
 
-                                                        AND   (IdOportunidade__c<> null)    
-
-                                                        AND  (idOportunidade__r.NumeroOportunidade__c LIKE :req.numOpp))
+                                                        AND   (IdOportunidade__c<> null))
                                                         ORDER BY CreatedDate DESC, Id DESC
-                                                        LIMIT 500];
+                                                        LIMIT 20];
 
         
         fillMaps(listDelivery, listAllDelivery, mapTerritoryToDelivery, mapAccToTerritory);
@@ -179,7 +170,7 @@ public class CancellingAppController {
 
     @RemoteAction
     public static ResponseOpportunityListData getOpportunityListDataOpp(String numOpp) {
-               
+            
         String currentProfileName;             
         List<ProgramacaoEntrega__c> listAllDelivery           = new List<ProgramacaoEntrega__c>();           
         Map<Id, List<ProgramacaoEntrega__c>> mapTerritoryToDelivery = new Map<Id, List<ProgramacaoEntrega__c>>();
@@ -310,6 +301,7 @@ public class CancellingAppController {
                 territorio__r.name,
                 territorio__r.nomeTerritorio__c,
                 territorio__r.regional__c,
+                territorio__r.regional__r.ACS__c,
                 territorio__r.id,
                 territorio__r.rtv__c,
                 territorio__r.rtv__r.name,
@@ -333,6 +325,7 @@ public class CancellingAppController {
                 name,
                 nomeTerritorio__c,
                 regional__c,
+                regional__r.ACS__c,
                 rtv__c,
                 rtv__r.name,
                 gerente__c,
@@ -938,7 +931,8 @@ public class CancellingAppController {
                             territorio__r.diretor__c,
                             territorio__r.diretor__r.name,
                             territorio__r.diretor__r.managerId,
-                            territorio__r.diretor__r.manager.name
+                            territorio__r.diretor__r.manager.name,
+                       		territorio__r.regional__r.ACS__c
                         FROM TerritoriosClientesConta__r
                     )
                 FROM Account
@@ -994,7 +988,8 @@ public class CancellingAppController {
                             territorio__r.diretor__c,
                             territorio__r.diretor__r.name,
                             territorio__r.diretor__r.managerId,
-                            territorio__r.diretor__r.manager.name
+                            territorio__r.diretor__r.manager.name,
+                        	territorio__r.regional__r.ACS__c
                         FROM TerritoriosClientesConta__r
                     )
                 FROM Account

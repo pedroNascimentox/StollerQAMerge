@@ -826,13 +826,18 @@ public class OpportunityHelper extends TriggerContext{
             'StageName'
         }; 
         Set<Id> oppClientEmailSet =  new Set<Id>();
+        Set<Id> oppClientDocuSignSet =  new Set<Id>();
         for(Opportunity oppRecord : newRecordsMap.values()){
             Opportunity oppOld = oldRecordsMap.get(oppRecord.Id);
             if(oppOld.StageName != oppRecord.StageName){
                 if(oppRecord.StageName == 'Em Aprovação Cliente'){
                     // System.debug(oppRecord);
                     oppRecord.StatusAprovacoes__c = 'Aguardando Aprovação - Cliente';
-                    oppClientEmailSet.add(oppRecord.Id);
+                    if (String.isBlank(oppRecord.EMailAprovacaoPedidoCliente__c)) {
+                        oppClientEmailSet.add(oppRecord.Id);
+                    } else {
+                        oppClientDocuSignSet.add(oppRecord.Id);
+                    }
                 }else if(oppRecord.StageName == 'Aprovado Cliente'){
                     oppRecord.AprovadoCliente__c = true;
                     oppRecord.StatusAprovacoes__c = 'Aprovado - Cliente';
@@ -848,13 +853,32 @@ public class OpportunityHelper extends TriggerContext{
             }
         }
         // System.debug(oppClientEmailSet);
-        if(!oppClientEmailSet.isEmpty()){
-            OpportunityHelper.generateAttachmentSendEmail(oppClientEmailSet);
-        }
+        if(!oppClientEmailSet.isEmpty()) OpportunityHelper.generateAttachmentSendEmail(oppClientEmailSet);
+        if(!oppClientDocuSignSet.isEmpty()) OpportunityHelper.createDocuSignSends(oppClientDocuSignSet);
+
     }
     @future(callout = true)
     public static void generateAttachmentSendEmail(Set<Id> oppIdSet){
 
+        List<Opportunity> oppClientEmailList = generateAttachment(oppIdSet);
+        EmailClientToApprove.sendEmail(oppClientEmailList);
+
+    }
+
+    @future(callout = true)
+    public static void createDocuSignSends(Set<Id> oppIdSet) {
+
+        generateAttachment(oppIdSet);
+
+        List<EnvioDocuSign__c> dsSends = new List<EnvioDocuSign__c>();
+        for (Id oppId : oppIdSet) {
+            dsSends.add(new EnvioDocuSign__c(Status__c = 'Nova', Oportunidade__c = oppId, EnviarImediatamente__c = false, ExternalId__c = oppId));
+        }
+        
+        upsert dsSends EnvioDocuSign__c.ExternalId__c;
+    }
+
+    public static List<Opportunity> generateAttachment(Set<Id> oppIdSet){
         List<ContentVersion> ctVersionList = new List<ContentVersion>();
         List<Opportunity> oppClientEmailList = new List<Opportunity>();
         Map<String, Id> oppNumberToId = new Map<String, Id>();
@@ -904,7 +928,8 @@ public class OpportunityHelper extends TriggerContext{
                 insert ctDocumentLinkList;
             }
         }
-        EmailClientToApprove.sendEmail(oppClientEmailList);
+
+        return oppClientEmailList;
     }
 
     public static void relayUpdatedBusinessLocationToChildDeliveryRecords(Map<Id, Opportunity> oldRecordsMap, Map<Id, Opportunity> newRecordsMap){
@@ -939,4 +964,264 @@ public class OpportunityHelper extends TriggerContext{
         }
 
     }
+
+    @future(callout = true)
+    public static void SendOpportunityToSign(List<Id> ids) {
+
+        //este método não será executado em bulk
+        if (ids.size() > 1) return;
+
+        Map<Id, Opportunity> opps = getOpportunities(ids);
+        Map<Id, User> delegatedApprovers = getDelegatedApprovers(opps.values());
+        Map<Id, dfsle__EnvelopeStatus__c> envelopeStatus = getExistingEnvelopesStatus(ids);
+
+        for (Opportunity opp : opps.values()) {
+
+            EnvioDocuSign__c envio = opp.EnviosComDocuSign__r[0];
+
+            try {
+
+                Map<String, Id> existingRecipients = getExistingRecipients(envio.Envelope__c);
+                
+                //dfsle.Envelope env = ( envio == null || String.isEmpty(envio.Envelope__c) 
+                //                          ? dfsle.EnvelopeService.getEmptyEnvelope(new dfsle.Entity(opp.Id)) 
+                //                          : dfsle.EnvelopeService.getEnvelope(envio.Envelope__c) );
+                             
+                dfsle.Envelope env = dfsle.EnvelopeService.getEmptyEnvelope(new dfsle.Entity(opp.Id));
+
+                System.debug('>>> envelope: '+env);
+                System.debug('>>> envelope.Id: '+env.docuSignId);
+
+                //atualizar configurações de notificação
+                dfsle.Notifications nots = new dfsle.Notifications(
+                    Boolean.valueOf(Label.DS_NOTIFICATION_REMIND),
+                    Integer.valueOf(Label.DS_NOTIFICATION_REMINDAFTERDAYS),
+                    Integer.valueOf(Label.DS_NOTIFICATION_REMINDFREQUENCYDAYS),
+                    Boolean.valueOf(Label.DS_NOTIFICATION_EXPIRES),
+                    Integer.valueOf(Label.DS_NOTIFICATION_EXPIREAFTERDAYS),
+                    Integer.valueOf(Label.DS_NOTIFICATION_EXPIREWARNDAYS),
+                    Boolean.valueOf(Label.DS_NOTIFICATION_UPDATECHATTER)
+                );
+                env = env.withNotifications(nots);
+                
+                //obter mensagem e assunto do email
+                String emailMessage = String.format(Label.DS_EMAIL_MENSAGEM, new List<Object>{opp.Name});
+                String emailSubject = String.format(Label.DS_EMAIL_ASSUNTO, new List<Object>{opp.Name, opp.Account.Name});
+                env = env.withEmail(emailSubject, emailMessage);
+
+                List<dfsle.Recipient> signers = new List<dfsle.Recipient>();
+                
+                //String oppUrl = '<a href="' + URL.getSalesforceBaseUrl().toExternalForm() + '/' + opp.Id + '">' + opp.Id + '</a>';
+                String oppUrl = opp.Name;
+
+                //RTV
+                User user0 = (delegatedApprovers.containsKey(opp.Territorio__r.RTV__r.DelegatedApproverId) 
+                                ? delegatedApprovers.get(opp.Territorio__r.RTV__r.DelegatedApproverId)
+                                : opp.Territorio__r.RTV__r);
+                String nomeRTV = (user0.Id == opp.Territorio__r.RTV__r.Id
+                                    ? opp.NomeRTV__c
+                                    : user0.Name);
+
+                String emailNote = String.format(Label.DS_EMAIL_NOTE, new List<Object>{'RTV', nomeRTV, oppUrl});
+
+                dfsle.Recipient rtv = newRecipient(
+                    //existingRecipients.get('Signer 1'),
+                    null,
+                    'RTV',
+                    nomeRTV,
+                    user0.Email,
+                    user0.Phone,
+                    'Signer 1', 1,
+                    2,
+                    opp.Id
+                ).withNote(emailNote);
+                
+                signers.add(rtv); 
+
+                //CLIENTE
+                dfsle.Recipient cliente = newRecipient(
+                    //existingRecipients.get('Signer 2'),
+                    null,
+                    'Cliente',
+                    opp.Account.Name,
+                    opp.EMailAprovacaoPedidoCliente__c,
+                    opp.Account.Phone,
+                    'Signer 2', 2,
+                    1,
+                    opp.Id
+                );
+                
+                signers.add(cliente); 
+                
+                //TESTEMUNHA 1
+                User user1 = (delegatedApprovers.containsKey(opp.GerenteRegional__r.DelegatedApproverId) 
+                                ? delegatedApprovers.get(opp.GerenteRegional__r.DelegatedApproverId)
+                                : opp.GerenteRegional__r);
+                emailNote = String.format(Label.DS_EMAIL_NOTE, new List<Object>{'Testemunha 1', user1.Name, oppUrl});
+                dfsle.Recipient testemunha1 = newRecipient(
+                    //existingRecipients.get('Signer 3'),
+                    null,
+                    'Testemunha',
+                    user1.Name,
+                    user1.Email,
+                    user1.Phone,
+                    'Signer 3', 3,
+                    2,
+                    opp.Id
+                ).withNote(emailNote);
+                
+                signers.add(testemunha1);             
+                
+                //TESTEMUNHA 2
+                User user2 = (delegatedApprovers.containsKey(opp.AnalistaCustomerService__r.DelegatedApproverId) 
+                                ? delegatedApprovers.get(opp.AnalistaCustomerService__r.DelegatedApproverId)
+                                : opp.AnalistaCustomerService__r);                
+                emailNote = String.format(Label.DS_EMAIL_NOTE, new List<Object>{'Testemunha 2', user2.Name, oppUrl});
+                dfsle.Recipient testemunha2 = newRecipient(
+                    //existingRecipients.get('Signer 4'),
+                    null,
+                    'Testemunha',
+                    user2.Name,
+                    user2.Email,
+                    user2.Phone,
+                    'Signer 4', 4,
+                    2,
+                    opp.Id
+                ).withNote(emailNote);  
+                
+                signers.add(testemunha2);
+
+                env = env.withRecipients(signers);
+
+                List<dfsle.Document> docs = dfsle.DocumentService.getLinkedDocuments(
+                ContentVersion.SObjectType,
+                new Set<Id>{ opp.Id },
+                true
+                );
+
+                env = env.withDocuments(docs);
+
+
+                //enviar novo envelope.
+                if (!Test.isRunningTest()) env = dfsle.EnvelopeService.sendEnvelope(env, true);
+
+
+                //se necessário
+                if (String.isNotBlank(envio.Envelope__c)) {
+                    //anular envelope existente.
+                    //dfsle.Envelope oldEnv = dfsle.EnvelopeService.getEnvelope(envio.Envelope__c);
+                    //String reason = Label.DS_VOID_REASON;
+                    //if (!Test.isRunningTest()) dfsle.StatusService.voidEnvelope(oldEnv.docuSignId, reason);
+
+                    //atualizar na salesforce
+                    //if (!Test.isRunningTest()) dfsle.EnvelopeService.updateEnvelope(env);
+                }
+
+                envio.Envelope__c = env.Id;
+                updateEnvio(envio, 'Enviada', '');
+
+            } catch (Exception e) {
+
+                updateEnvio(envio, 'Erro', e.getMessage() + '\n' + e.getStackTraceString());
+
+            }
+
+        }
+
+    }
+
+    public static void updateEnvio(EnvioDocuSign__c envio, String status, String log) {
+        envio.Log__c = log;
+        envio.Status__c = status;
+        envio.EnviarImediatamente__c = false;
+        update envio;          
+    }
+
+    private static dfsle.Recipient newRecipient(String id, String type, String name, String email, String phone, String roleName, Integer roleNumber, Integer routingOrder, Id sfId) {
+        return new dfsle.Recipient(
+            id, 
+            type, 
+            1, 
+            routingOrder, 
+            new dfsle.Recipient.Role(roleName, roleNumber), 
+            name, 
+            email, 
+            null, 
+            phone, 
+            null, 
+            '', 
+            null, 
+            '', 
+            '', 
+            true, 
+            new dfsle.Entity(sfId), 
+            false, 
+            true);
+    }
+
+    private static Map<Id, Opportunity> getOpportunities(List<Id> ids) {
+
+        return new Map<Id, Opportunity>([
+            SELECT Id, Name, Account.Name, EMailAprovacaoPedidoCliente__c, Account.Phone,
+                    NomeRTV__c, Territorio__r.RTV__r.Id, Territorio__r.RTV__r.Email, Territorio__r.RTV__r.Phone, Territorio__r.RTV__r.DelegatedApproverId,
+                    GerenteRegional__r.Name, GerenteRegional__r.Email, GerenteRegional__r.Phone, GerenteRegional__r.DelegatedApproverId,
+                    AnalistaCustomerService__r.Name, AnalistaCustomerService__r.Email, AnalistaCustomerService__r.Phone, AnalistaCustomerService__r.DelegatedApproverId,
+                    (SELECT Id, Oportunidade__c, Status__c, Log__c, EnviarImediatamente__c, Envelope__c, Envelope__r.dfsle__DocuSignId__c
+                    FROM EnviosComDocuSign__r)  
+            FROM Opportunity 
+            WHERE Id IN (SELECT Oportunidade__c 
+                         FROM EnvioDocuSign__c
+                         WHERE Id IN :ids)
+        ]);
+
+    }
+
+    private static Map<Id, dfsle__EnvelopeStatus__c> getExistingEnvelopesStatus(List<Id> ids) {
+        return new  Map<Id, dfsle__EnvelopeStatus__c>([
+            SELECT CreatedDate,dfsle__Completed__c,dfsle__DocuSignId__c,dfsle__EmailSubject__c,dfsle__Expires__c,
+                    dfsle__LastStatusUpdate__c,dfsle__Reason__c,dfsle__SenderEmail__c,dfsle__SenderName__c,dfsle__Sent__c,
+                    dfsle__SourceId__c,dfsle__Status__c,dfsle__TimeToComplete__c,Id,Name,OwnerId
+            FROM dfsle__EnvelopeStatus__c
+            WHERE dfsle__SourceId__c IN :ids
+            ORDER BY CreatedDate DESC
+            LIMIT 1
+        ]);
+    }
+
+    public static Map<Id, User> getDelegatedApprovers(List<Opportunity> opps) {
+
+        Map<Id, User> delegatedUsers = new Map<Id, User>();
+        Set<Id> delegatedUsersIds = new Set<Id>();
+
+        for (Opportunity o : opps) {
+            if (String.isNotBlank(o.Territorio__r.RTV__r.DelegatedApproverId)) delegatedUsersIds.add(o.Territorio__r.RTV__r.DelegatedApproverId);
+            if (String.isNotBlank(o.GerenteRegional__r.DelegatedApproverId)) delegatedUsersIds.add(o.GerenteRegional__r.DelegatedApproverId);
+            if (String.isNotBlank(o.AnalistaCustomerService__r.DelegatedApproverId)) delegatedUsersIds.add(o.AnalistaCustomerService__r.DelegatedApproverId);
+        }
+
+        if (!delegatedUsersIds.isEmpty()) {
+            delegatedUsers = new Map<Id, User>([SELECT Id, Name, Email, Phone
+                                                FROM User
+                                                WHERE Id IN :delegatedUsersIds]);
+        }
+
+        return delegatedUsers;
+
+    }
+
+    //finalizar 
+    public static Map<String, Id> getExistingRecipients(Id envId) {
+        Map<String, Id> result = new Map<String, Id>();
+
+        List<dfsle__Recipient__c> recipients = [SELECT Id, dfsle__Role__c
+                                                FROM dfsle__Recipient__c
+                                                where dfsle__Envelope__c = :envId];
+
+        for (dfsle__Recipient__c rec : recipients) {
+            result.put(rec.dfsle__Role__c, rec.Id);
+        } 
+
+        return result;
+    }
+
 }

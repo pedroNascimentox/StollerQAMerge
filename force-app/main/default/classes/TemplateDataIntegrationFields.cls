@@ -1666,7 +1666,7 @@ global with sharing class TemplateDataIntegrationFields {
             Decimal convertedPrecoVendaSemJuros = item.PrecoVendaSemJuros__c;
             Decimal convertedPrecoListaReferencia = item.PrecoListaReferencia__c;
 
-            if (order.CanalDistribuicao__c == '10' && order.Moeda__c == 'USD') {
+            if (order.CanalDistribuicao__c == '10' && order.Moeda__c == 'USD' && order.ListaPreco__c != 'Z4') {
                 convertedCurrency = 'BRL';
                 convertedValorUnitarioComJuros = item.ValorUnitarioComJuros__c * order.TaxaMedia__c;
                 convertedPrecoLista = item.PrecoLista__c * order.taxaMedia__c;
@@ -1813,6 +1813,7 @@ global with sharing class TemplateDataIntegrationFields {
         public String tipoProduto;
         public String family;
         public String subFamily;
+        public String maraMTART;
         public Integer ipi;
         public String embalagem;
         public String produtoSubstituto;
@@ -1843,6 +1844,7 @@ global with sharing class TemplateDataIntegrationFields {
             this.tipoProduto          = product.Tipo__c;
             this.family               = product.Family;
             this.subFamily            = product.SubFamily__c;  
+            this.maraMTART            = product.TipoDeMaterial__c;
             //this.ipi                  = Integer.valueOf(product.IPI__c);
             this.embalagem            = product.Embalagem__c;
             this.produtoSubstituto    = lookups.containsKey(product.ProdutoSubstituto__c) ? lookups.get(product.ProdutoSubstituto__c) : null;
@@ -1873,6 +1875,7 @@ global with sharing class TemplateDataIntegrationFields {
                 Tipo__c                 = this.tipoProduto,
                 Family                  = this.family,
                 SubFamily__c            = this.subFamily,
+                TipoDeMaterial__c       = this.maraMTART,
                 //IPI__c                  = this.ipi,
                 IsActive                = this.isActive,
                 Embalagem__c            = this.embalagem,

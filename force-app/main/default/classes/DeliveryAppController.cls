@@ -104,7 +104,7 @@ public class DeliveryAppController {
                                               IdOportunidade__r.Id, DataConfirmacao__c, IdOportunidade__r.condicaoExpedicao__c,
                                               IdOportunidade__r.NumeroOportunidade__c, TipoOrdem__c, DataFaturamento__c, Regional__r.Name,
                                               DiretorComercial__r.Name, NomeRTV__c, IdOportunidade__c, Produto__r.Multiplicidade__c, Regional__r.NomeRegional__c,
-                                              LocalNegocio__c, LocalNegocio__r.Name, LocalNegocio__r.Codigo__c, LocalNegocio__r.Descricao__c, CreatedDate
+                                              LocalNegocio__c, LocalNegocio__r.Name, LocalNegocio__r.Codigo__c, LocalNegocio__r.Descricao__c, CreatedDate, EmissorOrdem__r.TipoCliente__c, Produto__r.Tipo__c, RegistrationNumber__c, Guide__c
                                               FROM ProgramacaoEntrega__c 
                                               WHERE idOportunidade__c != null 
                                               AND (idOportunidade__r.NumeroOportunidade__c LIKE :numOpp)
@@ -147,7 +147,7 @@ public class DeliveryAppController {
             System.debug('Exception e ' + ex );
         }
 
-        system.debug('responseData: ' + responseData);
+        // system.debug('responseData: ' + responseData);
 
         return responseData;
     
@@ -182,7 +182,7 @@ public class DeliveryAppController {
                                               IdOportunidade__r.Id, DataConfirmacao__c, IdOportunidade__r.condicaoExpedicao__c,
                                               IdOportunidade__r.NumeroOportunidade__c, TipoOrdem__c, DataFaturamento__c, Regional__r.Name,
                                               DiretorComercial__r.Name, NomeRTV__c, IdOportunidade__c, Produto__r.Multiplicidade__c, Regional__r.NomeRegional__c,
-                                              LocalNegocio__c, LocalNegocio__r.Name, LocalNegocio__r.Codigo__c, LocalNegocio__r.Descricao__c, CreatedDate
+                                              LocalNegocio__c, LocalNegocio__r.Name, LocalNegocio__r.Codigo__c, LocalNegocio__r.Descricao__c, CreatedDate, EmissorOrdem__r.TipoCliente__c, Produto__r.Tipo__c, RegistrationNumber__c, Guide__c
                                               FROM ProgramacaoEntrega__c 
                                               WHERE (CreatedDate =: dt AND Id <: req.idDelivery AND idOportunidade__r.NumeroOportunidade__c LIKE :req.numOpp
                                               AND (idOportunidade__c != null)
@@ -231,7 +231,7 @@ public class DeliveryAppController {
             System.debug('Exception e' + ex);
         }
 
-         system.debug('responseData: ' + responseData);
+        //  system.debug('responseData: ' + responseData);
 
         return responseData;
 
@@ -265,7 +265,7 @@ public class DeliveryAppController {
                                               IdOportunidade__r.Id, DataConfirmacao__c, IdOportunidade__r.condicaoExpedicao__c,
                                               IdOportunidade__r.NumeroOportunidade__c, TipoOrdem__c, DataFaturamento__c, Regional__r.Name,
                                               DiretorComercial__r.Name, NomeRTV__c, IdOportunidade__c, Produto__r.Multiplicidade__c, Regional__r.NomeRegional__c,
-                                              LocalNegocio__c, LocalNegocio__r.Name, LocalNegocio__r.Codigo__c, LocalNegocio__r.Descricao__c, CreatedDate
+                                              LocalNegocio__c, LocalNegocio__r.Name, LocalNegocio__r.Codigo__c, LocalNegocio__r.Descricao__c, CreatedDate, EmissorOrdem__r.TipoCliente__c, Produto__r.Tipo__c, RegistrationNumber__c, Guide__c
                                               FROM ProgramacaoEntrega__c 
                                               WHERE idOportunidade__c != null
                                               AND (Status__c = 'Faturado Parcial' OR Status__c = 'Bloqueado Crédito' OR Status__c = 'Liberado')
@@ -282,10 +282,10 @@ public class DeliveryAppController {
             AND status__c = 'Integrado'
             AND statusSap__c = 'Confirmado'
         ]).groupByIds(ProgramacaoEntrega__c.IdOportunidade__c);
-        System.debug('mapTerritoryToDelivery = ' + mapTerritoryToDelivery);
+        // System.debug('mapTerritoryToDelivery = ' + mapTerritoryToDelivery);
         try {
             if (isCustomerService()){
-                System.System.debug('isCustomerService = true');
+                // System.System.debug('isCustomerService = true');
                 responseData = new ResponseOpportunityListData();
                 if (!listAllDelivery.isEmpty()){
                     responseData.data = fillResponseOpportunityListData(listAllDelivery, mapAccToTerritory, mapTerritoryToDelivery, opportunityIdToDeliveriesWithOVs);   
@@ -309,7 +309,7 @@ public class DeliveryAppController {
             System.debug('Exception e' + ex);
         }
 
-        system.debug('responseData no filter: ' + responseData);
+        // system.debug('responseData no filter: ' + responseData);
         return responseData;
     }
 
@@ -338,6 +338,7 @@ public class DeliveryAppController {
                 territorio__r.name,
                 territorio__r.nomeTerritorio__c,
                 territorio__r.regional__c,
+                territorio__r.regional__r.ACS__c,
                 territorio__r.id,
                 territorio__r.rtv__c,
                 territorio__r.rtv__r.name,
@@ -361,6 +362,7 @@ public class DeliveryAppController {
                 name,
                 nomeTerritorio__c,
                 regional__c,
+                regional__r.ACS__c,
                 rtv__c,
                 rtv__r.name,
                 gerente__c,
@@ -419,6 +421,9 @@ public class DeliveryAppController {
             productData.receiver               = accountDataProd;
             productData.culture                = cultureData;
             productData.confirmedDate          = delivery.DataConfirmacao__c;
+            productData.type                   = delivery.produto__r.Tipo__c;
+            productData.registrationNumber     = delivery.RegistrationNumber__c != null ? delivery.RegistrationNumber__c : '';
+            productData.guide                  = delivery.Guide__c != null ? delivery.Guide__c : '';
 
             productData.orderType              = delivery.TipoOrdem__c;
             productData.regionalName           = delivery.Regional__r.NomeRegional__c;
@@ -484,6 +489,7 @@ public class DeliveryAppController {
         for (id idOpp : mapIdToDelivery.keySet()){
             ProgramacaoEntrega__c delivery     = mapIdToDelivery.get(idOpp);
             accountDataOpp                     = new AccData();
+            accountDataOpp.type                = delivery.EmissorOrdem__r.TipoCliente__c;
             accountDataOpp.id                  = delivery.EmissorOrdem__r.Id;
             accountDataOpp.parentId            = delivery.EmissorOrdem__r.ParentId;
             accountDataOpp.name                = delivery.EmissorOrdem__r.Name;
@@ -512,8 +518,8 @@ public class DeliveryAppController {
             listOpportunityData.add(opportunityData);
         }
 
-        System.debug('mapKeyToDelivery => ' + JSON.serializePretty(mapKeyToDelivery));
-        System.debug('mapKeyToListProdData => ' + JSON.serializePretty(mapKeyToListProdData));
+        // System.debug('mapKeyToDelivery => ' + JSON.serializePretty(mapKeyToDelivery));
+        // System.debug('mapKeyToListProdData => ' + JSON.serializePretty(mapKeyToListProdData));
 
         for(String key : mapKeyToDelivery.keySet()){
             ProgramacaoEntrega__c delivery     = mapKeyToDelivery.get(key);
@@ -547,13 +553,18 @@ public class DeliveryAppController {
         }
 
         // system.debug(listOpportunityData);
+        for(OppData opp : listOpportunityData){
+            for(ProdData prod : opp.products){
 
+                System.debug('delivery.Confirmado__c ' + prod.confirmed + ' ' + prod.name);
+            }
+        }
         return listOpportunityData;
     }
 
     @RemoteAction
     public static ResponseDeliveryData upsertDeliveryData(RequestDeliveryData request) {
-
+        // System.debug('upsertDeliveryData');
         Savepoint savepoint = Database.setSavepoint();
         ResponseDeliveryData responseData;
         List<String> deliveryIdList                             = new List<String>();
@@ -577,87 +588,118 @@ public class DeliveryAppController {
                 requestOpportunityIds.add(delivery.oppId);
             }
 
-            System.debug('request.listDeliveryId  ' + mapDeleteDelivery);
+            // System.debug('request.listDeliveryId  ' + mapDeleteDelivery);
             Id opportunityIdToValidateRA;
             String customerName;
             Set<Id> businessIdSet = new Set<Id>();
 
          
 
-            List<ProgramacaoEntrega__c> listDelivery = [SELECT Id, cultura__c, dataFaturamento__c, descontoConcedido__c, descontoTipoCliente__c, 
-                                                       diretorComercial__c, diretorNegocios__c, juros__c, litros__c, localNegocio__c, nomeRTV__c, numeroPedidoCliente__c, precoLista__c,
-                                                       precoListaReferencia__c, precoVenda__c, precoVendaJuros__c, precoLitro__c, produto__c, regional__c, 
-                                                       saldoLimiteCredito__c, territorio__c, territorio__r.RTV__C, tipoOrdem__c, valorFrete__c, valorTotal__c, valorUnitario__c,
-                                                       idOpportunityLineItem__c, Status__c, StatusSAP__c, idOportunidade__c, idOportunidade__r.account.name, 
-                                                       idOportunidade__r.account.tipoCliente__c, confirmado__c, dataEntrega__c, emissorOrdem__c, recebedorOrdem__c,
-                                                       quantidadeProgramada__c, clienteOrigemRemanejamento__c, gerenteRegional__c, itinerario__c, precoVendasJurosUSD__c,
-                                                       valorTotalReaisDolar__c, name, TaxaDolar__C, valorTotalUSD__c, Apuracao__c
-                                                       FROM ProgramacaoEntrega__c WHERE (Id IN :request.listDeliveryId OR Id IN :request.listToDelete) AND confirmado__c = false];                                      
-
-            for (ProgramacaoEntrega__c delivery: listDelivery){
-                if(String.isNotBlank(delivery.idOpportunityLineItem__c)){
-                    mapIdToDelivery.put(delivery.idOpportunityLineItem__c, delivery);
-                }
-                if(!mapDeleteDelivery.containsKey(delivery.Id)){
-                    mapDeleteDelivery.put(delivery.Id, delivery);
-                }
-                businessIdSet.add(delivery.LocalNegocio__c);
-                if (request.listToDelete.contains(delivery.id)) {
-                    listDeliveryToDelete.add(delivery);
-                }else {
-                    String key = getDeliveryKey(delivery);
-                    String keyWithOut = getDeliveryKeyWithOutConfirm(delivery);
-                        System.debug('key => ' + key);
-                        System.debug('keyWithOut => ' + keyWithOut);
-                    mapIdToKey.put(delivery.id, key);
-
-                    if(!mapKeyToKey.containsKey(keyWithOut)){
-                        mapkeyToKey.put(keyWithOut, new List<String> {key});
-                    }else{
-                        mapkeyToKey.get(keyWithOut).add(key);
-                    }
-
-                    if (!mapKeyToDelivery.containsKey(key)) {
-                        mapKeyToDelivery.put(key, delivery);
-
-                    }else {
-                        ProgramacaoEntrega__c d = mapKeyToDelivery.get(key);
-                        System.debug('dJson ' + Json.serializePretty(d));
-                        System.debug('deliveryJson ' + Json.serializePretty(delivery));
-                        d.quantidadeProgramada__c   += delivery.quantidadeProgramada__c;
-                        d.litros__c                 += delivery.litros__c;
-                        d.valorTotal__c             += delivery.valorTotal__c;
-                        d.valorTotalUSD__c          += delivery.valorTotalUSD__c;
-                        d.precoLitro__c              = d.valorTotalReaisDolar__c / d.litros__c;
-                        listDeliveryToDelete.add(delivery);
-                    }
-                    if(delivery.idOportunidade__r.account.tipoCliente__c == 'ZE'){
-                        opportunityIdToValidateRA = delivery.idOportunidade__c;
-                        customerName = delivery.idOportunidade__r.account.name;
-                    }
+            List<ProgramacaoEntrega__c> listDelivery = [SELECT Id, cultura__c, name, dataFaturamento__c, descontoConcedido__c, descontoTipoCliente__c, 
+                                                        diretorComercial__c, diretorNegocios__c, juros__c, litros__c, localNegocio__c, nomeRTV__c, numeroPedidoCliente__c, 
+                                                        precoListaReferencia__c, precoVenda__c, precoVendaJuros__c, precoLitro__c, produto__c, regional__c, 
+                                                        saldoLimiteCredito__c, territorio__c, tipoOrdem__c, valorFrete__c, valorTotal__c, valorUnitario__c,
+                                                        idOpportunityLineItem__c, Status__c, StatusSAP__c, idOportunidade__c, idOportunidade__r.account.name, 
+                                                        idOportunidade__r.account.tipoCliente__c, confirmado__c, dataEntrega__c, emissorOrdem__c, recebedorOrdem__c,
+                                                        quantidadeProgramada__c, clienteOrigemRemanejamento__c, gerenteRegional__c, itinerario__c, precoVendasJurosUSD__c, valorTotalUSD__c, 
+                                                        valorTotalReaisDolar__c, Apuracao__c, TaxaDolar__c, PrecoLista__c, EmissorOrdem__r.TipoCliente__c, produto__r.Tipo__c, produto__r.Name, RegistrationNumber__c, Guide__c
+                                                        FROM ProgramacaoEntrega__c WHERE idOportunidade__c = :request.oppId AND confirmado__c = false AND Status__c != 'Cancelado'];
+            
+            List<ProgramacaoEntrega__c> programacaoFromOpptList = new List<ProgramacaoEntrega__c>();
+            for(ProgramacaoEntrega__c programacao : listDelivery){
+                if(!request.listDeliveryId.contains(programacao.Id)){
+                    programacaoFromOpptList.add(programacao);
                 }
             }
 
-            System.debug('mapDeleteDelivery ' + mapDeleteDelivery);  
+            // In case of confirmed deliveries that has 'Defensivo' product type and 'Produtor Rural' client type, verifies if RegistrationNumber and Guide are filled up
+            Boolean showWarning =  false;
+            String  warning    =  '<div class="message-list"><p>O(s) Produto(s): </p>';
+                    warning    += '<ul>';
+            for(ProgramacaoEntrega__c delivery : listDelivery){
+                for(DeliveryData req : request.listDeliveryData){
+                    if((req.Id == delivery.Id && delivery.EmissorOrdem__r.TipoCliente__c == 'ZE' && delivery.produto__r.Tipo__c == 'Defensivo' && req.confirmed) 
+                        && (req.registrationNumber <= '' || req.guide <= '')){
+
+                        warning += '<li>' + delivery.Produto__r.Name + '</li>';
+                        showWarning =  true; 
+                    }
+                }
+            }
+            if(showWarning){
+                warning += '</ul><p>Produto(s) defensivo para Consumidor Final. Necessário inserir RA e Guia para confirmar a entrega</p></div>';
+                responseData = new ResponseDeliveryData(warning, 'warning', true);
+                return responseData;
+            }
+
+            for (ProgramacaoEntrega__c delivery: listDelivery){
+                if(request.listDeliveryId.contains(delivery.Id)){
+                    if(String.isNotBlank(delivery.idOpportunityLineItem__c)){
+                        mapIdToDelivery.put(delivery.idOpportunityLineItem__c, delivery);
+                    }
+                    if(!mapDeleteDelivery.containsKey(delivery.Id)){
+                        mapDeleteDelivery.put(delivery.Id, delivery);
+                    }
+                    businessIdSet.add(delivery.LocalNegocio__c);
+                    if (request.listToDelete.contains(delivery.id)) {
+                        listDeliveryToDelete.add(delivery);
+                    }else {
+                        String key = getDeliveryKey(delivery);
+                        String keyWithOut = getDeliveryKeyWithOutConfirm(delivery);
+                            // System.debug('key => ' + key);
+                            // System.debug('keyWithOut => ' + keyWithOut);
+                        mapIdToKey.put(delivery.id, key);
+
+                        if(!mapKeyToKey.containsKey(keyWithOut)){
+                            mapkeyToKey.put(keyWithOut, new List<String> {key});
+                        }else{
+                            mapkeyToKey.get(keyWithOut).add(key);
+                        }
+
+                        if (!mapKeyToDelivery.containsKey(key)) {
+                            mapKeyToDelivery.put(key, delivery);
+
+                        }else {
+                            ProgramacaoEntrega__c d = mapKeyToDelivery.get(key);
+                            // System.debug('dJson ' + Json.serializePretty(d));
+                            // System.debug('deliveryJson ' + Json.serializePretty(delivery));
+                            d.quantidadeProgramada__c   += delivery.quantidadeProgramada__c;
+                            d.litros__c                 += delivery.litros__c;
+                            d.valorTotal__c             += delivery.valorTotal__c;
+                            d.valorTotalUSD__c          += delivery.valorTotalUSD__c;
+                            d.precoLitro__c              = d.valorTotalReaisDolar__c / d.litros__c;
+                            listDeliveryToDelete.add(delivery);
+                        }
+                        if(delivery.idOportunidade__r.account.tipoCliente__c == 'ZE'){
+                            opportunityIdToValidateRA = delivery.idOportunidade__c;
+                            customerName = delivery.idOportunidade__r.account.name;
+                        }
+                    }
+                }
+            }   
+
+            // System.debug('mapDeleteDelivery ' + mapDeleteDelivery);  
 
             for(ProgramacaoEntrega__c delivery : listDelivery){
+                if(request.listDeliveryId.contains(delivery.Id)){
 
-                String keyWithOut = getDeliveryKeyWithOutConfirm(delivery);
-                
-                String keyConfirm = getDeliveryKey(delivery);
+                    String keyWithOut = getDeliveryKeyWithOutConfirm(delivery);
+                    
+                    String keyConfirm = getDeliveryKey(delivery);
 
-                if(mapKeyToKey.containsKey(keyWithOut)){
-                
-                    List<String> lstkeyWithOut = mapKeyToKey.get(keyWithOut);
+                    if(mapKeyToKey.containsKey(keyWithOut)){
+                    
+                        List<String> lstkeyWithOut = mapKeyToKey.get(keyWithOut);
 
-                    if(lstkeyWithOut.size() > 1){
+                        if(lstkeyWithOut.size() > 1){
 
-                        for(String key : lstkeyWithOut){
-                            
-                            if(key == keyConfirm && delivery.Confirmado__c == false){
-                            
-                                if(mapKeyToDelivery.containsKey(keyConfirm)){
-                                    mapKeyToDelivery.remove(keyConfirm);
+                            for(String key : lstkeyWithOut){
+
+                                if(key == keyConfirm && delivery.Confirmado__c == false){
+                                
+                                    if(mapKeyToDelivery.containsKey(keyConfirm)){
+                                        mapKeyToDelivery.remove(keyConfirm);
+                                    }
                                 }
                             }
                         }
@@ -665,10 +707,10 @@ public class DeliveryAppController {
                 }
             }
 
-            System.debug('mapKeyToKey ' + mapKeyToKey);
+            // System.debug('mapKeyToKey ' + mapKeyToKey);
 
-            System.debug('listDeliveryToDelete' + listDeliveryToDelete);
-            System.debug('mapKeyToDelivery ' + mapKeyToDelivery);
+            // System.debug('listDeliveryToDelete' + listDeliveryToDelete);
+            // System.debug('mapKeyToDelivery ' + mapKeyToDelivery);
 
             Set<Id> opportunitiesWithRADocumentsIds = new Set<Id>();
             Map<Id, Product2> idToProduct;
@@ -765,6 +807,8 @@ public class DeliveryAppController {
                 }
 
                 deliveryToUpsert.Id                             = deliveryData.id;
+                deliveryToUpsert.RegistrationNumber__c          = deliveryData.registrationNumber;
+                deliveryToUpsert.Guide__c                       = deliveryData.guide;
                 deliveryToUpsert.confirmado__c                  = (isValid ? deliveryData.confirmed : false);
                 deliveryToUpsert.dataEntrega__c                 = (deliveryData.deliveryDate  != null ? Date.valueOf(deliveryData.deliveryDate) : null);
                 deliveryToUpsert.emissorOrdem__c                = deliveryData.selectedAccount;
@@ -871,10 +915,10 @@ public class DeliveryAppController {
                 // System.debug('key');
                 // System.debug(key);
                 if (!mapKeyToDelivery.containsKey(key)) {
-                     System.debug('não contem');
+                    //  System.debug('não contem');
                     if (mapIdToKey.containsKey(deliveryToUpsert.id)) {
-                         System.debug('mapIdToKey => ' + mapIdToKey);
-                         System.debug('contem id');
+                        //  System.debug('mapIdToKey => ' + mapIdToKey);
+                        //  System.debug('contem id');
                         deliveryToUpsert.Id = null;
                         // mapKeyToDelivery.remove(mapIdToKey.get(deliveryToUpsert.id));
                     }
@@ -887,13 +931,13 @@ public class DeliveryAppController {
                     // System.debug(deliveryToUpsert.id);
                     // System.debug(d.id);
                     if (deliveryToUpsert.id == d.id) {
-                        System.debug('Id iguais' + deliveryToUpsert);
-                        System.debug('Id iguais' + d);
+                        // System.debug('Id iguais' + deliveryToUpsert);
+                        // System.debug('Id iguais' + d);
                         mapKeyToDelivery.put(key, deliveryToUpsert);
-                        System.debug(deliveryToUpsert);
+                        // System.debug(deliveryToUpsert);
                     }else {
-                        System.debug('Id diferentes' + deliveryToUpsert);
-                        System.debug('Id diferentes' + d);
+                        // System.debug('Id diferentes' + deliveryToUpsert);
+                        // System.debug('Id diferentes' + d);
                         d.quantidadeProgramada__c   += deliveryToUpsert.quantidadeProgramada__c;
                         d.litros__c                 += deliveryToUpsert.litros__c;
                         d.valorTotal__c             += deliveryToUpsert.valorTotal__c;
@@ -925,42 +969,17 @@ public class DeliveryAppController {
             for (String deliveryId : mapIdToKey.keySet()) {
                 if (!deliveryIdList.contains(deliveryId)) {
                     if(mapDeleteDelivery.containskey(deliveryId)){
-                            System.debug('deliveryId => ' + deliveryId);
+                            // System.debug('deliveryId => ' + deliveryId);
                         listDeliveryToDelete.add(mapKeyToDelivery.get(mapIdToKey.get(deliveryId)));
                         mapKeyToDelivery.remove(mapIdToKey.get(deliveryId));
                     }
                 }
             }
 
-            System.debug('listDeliveryToDelete ' + listDeliveryToDelete);
-            System.debug('mapKeyToDelivery.values() ' + mapKeyToDelivery.values());
+            // System.debug('listDeliveryToDelete ' + listDeliveryToDelete);
+            // System.debug('mapKeyToDelivery.values() ' + mapKeyToDelivery.values());
 
-            // System.debug('---');
-            // System.debug('listDeliveryToDelete');
-            // System.debug(listDeliveryToDelete);
-            // System.debug('---');
-
-            // System.debug('===');
-            // System.debug(mapKeyToDelivery);
-            // System.debug('===');
-
-            upsert (mapKeyToDelivery.values());
-            delete listDeliveryToDelete;
-
-            listDeliveryToDelete = new List<ProgramacaoEntrega__c>();
-            mapKeyToDelivery = new Map<String, ProgramacaoEntrega__c>();
-
-            List<ProgramacaoEntrega__c> listaDelivery = [SELECT Id, cultura__c, name, dataFaturamento__c, descontoConcedido__c, descontoTipoCliente__c, 
-                                                        diretorComercial__c, diretorNegocios__c, juros__c, litros__c, localNegocio__c, nomeRTV__c, numeroPedidoCliente__c, 
-                                                        precoListaReferencia__c, precoVenda__c, precoVendaJuros__c, precoLitro__c, produto__c, regional__c, 
-                                                        saldoLimiteCredito__c, territorio__c, tipoOrdem__c, valorFrete__c, valorTotal__c, valorUnitario__c,
-                                                        idOpportunityLineItem__c, Status__c, StatusSAP__c, idOportunidade__c, idOportunidade__r.account.name, 
-                                                        idOportunidade__r.account.tipoCliente__c, confirmado__c, dataEntrega__c, emissorOrdem__c, recebedorOrdem__c,
-                                                        quantidadeProgramada__c, clienteOrigemRemanejamento__c, gerenteRegional__c, itinerario__c, precoVendasJurosUSD__c, valorTotalUSD__c, 
-                                                        valorTotalReaisDolar__c, Apuracao__c
-                                                        FROM ProgramacaoEntrega__c WHERE idOportunidade__c = :request.oppId AND confirmado__c = false AND Status__c != 'Cancelado'];
-
-            for (ProgramacaoEntrega__c delivery: listaDelivery){
+            for (ProgramacaoEntrega__c delivery: programacaoFromOpptList){
                 String key = getDeliveryKey(delivery);
                 if (!mapKeyToDelivery.containsKey(key)) {
                     mapKeyToDelivery.put(key, delivery);
@@ -978,31 +997,6 @@ public class DeliveryAppController {
                 }
             }
 
-             for(ProgramacaoEntrega__c delivery : listaDelivery){
-
-                String keyWithOut = getDeliveryKeyWithOutConfirm(delivery);
-                
-                String keyConfirm = getDeliveryKey(delivery);
-
-                if(mapKeyToKey.containsKey(keyWithOut)){
-                
-                    List<String> lstkeyWithOut = mapKeyToKey.get(keyWithOut);
-
-                    if(lstkeyWithOut.size() > 1){
-
-                        for(String key : lstkeyWithOut){
-                            
-                            if(key == keyConfirm && delivery.Confirmado__c == false){
-                            
-                                if(mapKeyToDelivery.containsKey(keyConfirm)){
-                                    System.debug(mapKeyToDelivery);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
             // System.debug('---');
             // System.debug('listDeliveryToDelete');
             // System.debug(listDeliveryToDelete);
@@ -1012,8 +1006,8 @@ public class DeliveryAppController {
             // System.debug(mapKeyToDelivery);
             // System.debug('===');
 
-            System.debug('listDeliveryToDelete ' + listDeliveryToDelete);
-            System.debug('mapKeyToDelivery.values() ' + mapKeyToDelivery.values());
+            // System.debug('listDeliveryToDelete ' + listDeliveryToDelete);
+            // System.debug('mapKeyToDelivery.values() ' + mapKeyToDelivery.values());
 
             upsert (mapKeyToDelivery.values());
             delete listDeliveryToDelete;
@@ -1256,7 +1250,8 @@ public class DeliveryAppController {
                             territorio__r.diretor__c,
                             territorio__r.diretor__r.name,
                             territorio__r.diretor__r.managerId,
-                            territorio__r.diretor__r.manager.name
+                            territorio__r.diretor__r.manager.name,
+                        	territorio__r.regional__r.ACS__c
                         FROM TerritoriosClientesConta__r
                     )
                 FROM Account
@@ -1310,7 +1305,8 @@ public class DeliveryAppController {
                             territorio__r.diretor__c,
                             territorio__r.diretor__r.name,
                             territorio__r.diretor__r.managerId,
-                            territorio__r.diretor__r.manager.name
+                            territorio__r.diretor__r.manager.name,
+                        	territorio__r.regional__r.ACS__c
                         FROM TerritoriosClientesConta__r
                     )
                 FROM Account
@@ -1607,6 +1603,11 @@ public class DeliveryAppController {
             this.message   = htmlReturn;
             this.hasErrors = false;
         }
+        public ResponseDeliveryData(String htmlReturn, String type, Boolean error){
+            this.type      = type;
+            this.message   = htmlReturn;
+            this.hasErrors = error;
+        }
     }
     
     public class ResponseDeliveryAppData extends ResultTemplate {     
@@ -1655,10 +1656,14 @@ public class DeliveryAppController {
         String state;                   // Account.ShippingSate
         String farm;                    // Account.NomeFazenda__c
         Boolean block;                   // Account.BloqueadoCredito__c
+        String type;
         TerritoryData[] territories;
     }
 
     public class ProdData {
+        String guide;
+        String registrationNumber;
+        String type;
         String id;                      // ProgramacaoEntrega__c.Id
         String orderType;               // ProgramacaoEntrega__c.TipoOrdem__c
         String regionalName;            // ProgramacaoEntrega__c.Regional__r.Name
@@ -1704,6 +1709,8 @@ public class DeliveryAppController {
 
     public class DeliveryData {
         public String id;
+        public String guide;
+        public String registrationNumber;
         public String orderType;               // ProgramacaoEntrega__c.tipoOrdem__c
         public Boolean confirmed;              // ProgramacaoEntrega__c.confirmado__c
         public String deliveryDate;            // ProgramacaoEntrega__c.dataEntrega__c

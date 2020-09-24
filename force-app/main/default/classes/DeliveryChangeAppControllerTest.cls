@@ -97,7 +97,8 @@ public with sharing class DeliveryChangeAppControllerTest {
         insert opportunity;
 
         Product2 product = (Product2)TestFactory.createSObject(new Product2(
-            tipo__c = 'Defensivo'
+            tipo__c = 'Defensivo',
+            SubFamily__c = '029' 
         ));
         insert product;
 

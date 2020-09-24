@@ -1335,6 +1335,26 @@
         scope.step.actionBackStep = function () {
             location.href = "#/header";
         };
+        debugger;
+        scope.validateConfirmedItem = function (item) {
+            debugger;
+            if ((scope.base.selectedOpp.selectedAccount.type == 'ZE' && item.type == 'Defensivo' && item.confirmed) && (item.registrationNumber <= '' || item.guide <= '')) {
+                Swal.fire({
+                    type: 'warning',
+                    title: 'Atenção',
+                    html: 'Produto defensivo para Consumidor Final. Necessário inserir RA e Guia para confirmar a entrega'
+                });
+                item.confirmed = false;
+            }
+            
+        }
+
+        scope.uncheckRAandGuide = function (item) {
+            if(item.registrationNumber <= '' || item.guide <= ''){
+                item.confirmed = false;
+            }
+        }
+
 
         scope.showNumberOfDeliveriesAlert = function () {
             return (!isCustomerService && scope.base.currOpp.ovNumbers > 0);
@@ -1649,6 +1669,9 @@
                         debugger;
                         if (product.quantity > 0 && product.balance > 0) {
                             currentProduct = {
+                                registrationNumber: product.registrationNumber,
+                                guide: product.guide,
+                                type: product.type,
                                 id: producthelper.id,
                                 productId: product.productId,
                                 itemId: producthelper.itemId,
@@ -1979,7 +2002,7 @@
                 scope.calcBalance(p);
             }
         };
-
+        
     }]);
 
     deliveryApp.controller('SummaryCtrl', ['$scope', '$http', function (scope, http) {
@@ -2017,26 +2040,28 @@
                 }
 
                 deliveryData.push({
-                    id:                item.id,
-                    oppId:             scope.base.currOpp.id,
-                    oppItemId:         item.itemId,
-                    productId:         item.productId,
-                    businessPlaceId:   (scope.base.currOpp.selectedBusinessPlace != null ? scope.base.currOpp.selectedBusinessPlace.id : null),
-                    itineraryDays:     itineraryDays,
-                    orderType:         scope.base.currOpp.orderType.value,
-                    confirmed:         item.confirmed,
-                    deliveryDate:      formatDateForm(item.deliveryDate),
-                    selectedAccount:   scope.base.currOpp.selectedAccount.id,
-                    receiver:          (scope.base.currOpp.orderType.value == 'Conta e Ordem' && item.receiver != null ? item.receiver.id : null),
-                    shipper:           (scope.base.currOpp.orderType.value == 'Remanejamento' && scope.base.currOpp.shipper != null ? scope.base.currOpp.shipper.id : null),
-                    quantity:          item.quantity,
-                    liter:             item.liter,
-                    baseLiter:         item.baseLiter,
-                    confirmedDate:     formatDateForm((item.confirmedDate != null ? item.confirmedDate  : new Date())),
-                    orderNumber:       item.orderNumber,
-                    territoryData:     scope.base.currOpp.selectedTerritory,
-                    itineraryId:       scope.base.deliveryData.itineraryId
-                });
+                    id:                     item.id,
+                    oppId:                  scope.base.currOpp.id,
+                    oppItemId:              item.itemId,
+                    productId:              item.productId,
+                    businessPlaceId:        (scope.base.currOpp.selectedBusinessPlace != null ? scope.base.currOpp.selectedBusinessPlace.id : null),
+                    itineraryDays:          itineraryDays,
+                    orderType:              scope.base.currOpp.orderType.value,
+                    confirmed:              item.confirmed,
+                    deliveryDate:           formatDateForm(item.deliveryDate),
+                    selectedAccount:        scope.base.currOpp.selectedAccount.id,
+                    receiver:               (scope.base.currOpp.orderType.value == 'Conta e Ordem' && item.receiver != null ? item.receiver.id : null),
+                    shipper:                (scope.base.currOpp.orderType.value == 'Remanejamento' && scope.base.currOpp.shipper != null ? scope.base.currOpp.shipper.id : null),
+                    quantity:               item.quantity,
+                    liter:                  item.liter,
+                    baseLiter:              item.baseLiter,
+                    confirmedDate:          formatDateForm((item.confirmedDate != null ? item.confirmedDate  : new Date())),
+                    orderNumber:            item.orderNumber,
+                    territoryData:          scope.base.currOpp.selectedTerritory,
+                    itineraryId:            scope.base.deliveryData.itineraryId,
+                    guide:                  item.guide,
+                    registrationNumber:     item.registrationNumber
+                });     
             });
             console.log(deliveryData);
             console.log(listToDelete);

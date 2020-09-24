@@ -5,12 +5,12 @@ trigger NotaFiscalItem on NotaFiscalItem__c (before insert, after insert, after 
                 NotaFiscalItemHelper.setSaldoLitrosEscoamento(Trigger.new);
             }
             when AFTER_INSERT {
-                NotaFiscalItemHelper.updateApuracaoRelation(Trigger.newMap);
+                NotaFiscalItemHelper.updateApuracaoRelation(Trigger.newMap, Trigger.oldMap);
                 NotaFiscalItemHelper.setValorTotalOnUpsert(Trigger.new);
                 NotaFiscalItemHelper.calculateBalance(Trigger.newMap);
             }
             when AFTER_UPDATE {
-                NotaFiscalItemHelper.updateApuracaoRelation(Trigger.newMap);
+                NotaFiscalItemHelper.updateApuracaoRelation(Trigger.newMap, Trigger.oldMap);
                 NotaFiscalItemHelper.setValorTotalOnUpsert(Trigger.new);
                 NotaFiscalItemHelper.updateApWallet(Trigger.newMap, Trigger.oldMap);
                 // NotaFiscalItemHelper.calculateBalance(Trigger.newMap);

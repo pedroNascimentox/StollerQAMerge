@@ -1,6 +1,6 @@
 
 (function () {
-    var deliveryChangeApp = angular.module('deliveryChangeApp', ['ngRoute', 'sf-lookup', 'floating-button']);
+    var deliveryChangeApp = angular.module('deliveryChangeApp', ['ngRoute', 'sf-lookup', 'floating-button', 'infinite-scroll']);
 
     deliveryChangeApp.config(function ($routeProvider) {
         $routeProvider.
@@ -140,6 +140,7 @@
             selectedProducts: [],
             selectedProductsId: [],
             selectedDeliveryId: [],
+            lastIndex : [],
         };
         scope.filteredPaymentConditions = [];
         scope.ship = {
@@ -347,80 +348,185 @@
 
         scope.isLoading = true;
 
-        scope.callRemote = function () {
-            scope.isLoading = true;
-            callRemoteAction('DeliveryChangeAppController.getOpportunityListData', function (result, event) {
-                if (event.status) {
-                    if (!result.hasErrors) {
-                        scope.base.statusList = [];
-                        scope.base.arrOpp = result.data;
-                        console.log(scope.base.arrOpp);
-                        let arrHelper = scope.base.arrOppFiltered;
-                        scope.base.arrOppFiltered = [];
-                        scope.base.arrOpp = scope.base.arrOpp.filter(function (opp) {
-                            opp.products = opp.products.filter(function (product) {
-                                let checks = {
-                                    orderCreatedDate: true,
-                                    orderNumber: true,
-                                    regional: true,
-                                    rtvName: true,
-                                    selectedAccount: true,
-                                    selectedProduct: true
-                                };
-                                if (scope.filter.selectedAccount != null) {
-                                    checks.selectedAccount = scope.filter.selectedAccount.id == product.selectedAccount.id;
-                                }
-                                if (scope.filter.selectedProduct != null) {
-                                    checks.selectedProduct = scope.filter.selectedProduct.id == product.productId;
-                                }
-                                if (scope.filter.orderCreatedDate != null) {
-                                    checks.orderCreatedDate = scope.filter.orderCreatedDate == formatDateForm(product.orderCreatedDate);
-                                }
-                                if (scope.filter.rtvName != null) {
-                                    checks.rtvName = product.hasOwnProperty('rtvName') && product.rtvName.toLowerCase().indexOf(scope.filter.rtvName.toLowerCase()) > -1;
-                                }
-                                if (scope.filter.regional != null) {
-                                    checks.regional = product.hasOwnProperty('regionalName') && product.regionalName.toLowerCase().indexOf(scope.filter.regional.toLowerCase()) > -1;
-                                }
-                                if (scope.filter.oppNumber != null) {
-                                    checks.oppNumber = product.hasOwnProperty('oppNumber') && product.oppNumber.toLowerCase().indexOf(scope.filter.oppNumber.toLowerCase()) > -1;
-                                }
-                                if (scope.filter.orderNumber != null) {
-                                    checks.orderNumber = product.hasOwnProperty('orderNumber') && product.orderNumber.toLowerCase().indexOf(scope.filter.orderNumber.toLowerCase()) > -1;
-                                }
-                                let checkFinal = true;
-                                for (const key in checks) {
-                                    checkFinal = checks[key];
-                                    if (!checkFinal) {
-                                        break;
+        scope.getNextRecords = function () {
+
+            let opp =  scope.base.lastIndex;
+            let last_element = opp[opp.length - 1];
+
+            let today = last_element.createdDate.toString();
+            let idDelivery = last_element.deliveryId;
+
+            scope.callRemote = function () {
+                
+                callRemoteAction('DeliveryChangeAppController.getOpportunityListDataChunk', {
+                    today: today,
+                    idDelivery : idDelivery
+
+            }, function (result, event) {
+                    if (event.status) {
+                        if (!result.hasErrors) {
+                            if(result.data.length < 1)  return;
+                            scope.base.statusList = [];
+                            scope.base.arrOpp = result.data;
+                            console.log(scope.base.arrOpp);
+                            let arrHelper = scope.base.arrOppFiltered;
+                            scope.base.arrOppFiltered = [];
+                            scope.base.arrOpp = scope.base.arrOpp.filter(function (opp) {
+                                opp.products = opp.products.filter(function (product) {
+                                    let checks = {
+                                        orderCreatedDate: true,
+                                        orderNumber: true,
+                                        regional: true,
+                                        rtvName: true,
+                                        selectedAccount: true,
+                                        selectedProduct: true
+                                    };
+                                    if (scope.filter.selectedAccount != null) {
+                                        checks.selectedAccount = scope.filter.selectedAccount.id == product.selectedAccount.id;
                                     }
-                                }
-                                return checkFinal;
+                                    if (scope.filter.selectedProduct != null) {
+                                        checks.selectedProduct = scope.filter.selectedProduct.id == product.productId;
+                                    }
+                                    if (scope.filter.orderCreatedDate != null) {
+                                        checks.orderCreatedDate = scope.filter.orderCreatedDate == formatDateForm(product.orderCreatedDate);
+                                    }
+                                    if (scope.filter.rtvName != null) {
+                                        checks.rtvName = product.hasOwnProperty('rtvName') && product.rtvName.toLowerCase().indexOf(scope.filter.rtvName.toLowerCase()) > -1;
+                                    }
+                                    if (scope.filter.regional != null) {
+                                        checks.regional = product.hasOwnProperty('regionalName') && product.regionalName.toLowerCase().indexOf(scope.filter.regional.toLowerCase()) > -1;
+                                    }
+                                    if (scope.filter.oppNumber != null) {
+                                        checks.oppNumber = product.hasOwnProperty('oppNumber') && product.oppNumber.toLowerCase().indexOf(scope.filter.oppNumber.toLowerCase()) > -1;
+                                    }
+                                    if (scope.filter.orderNumber != null) {
+                                        checks.orderNumber = product.hasOwnProperty('orderNumber') && product.orderNumber.toLowerCase().indexOf(scope.filter.orderNumber.toLowerCase()) > -1;
+                                    }
+                                    let checkFinal = true;
+                                    for (const key in checks) {
+                                        checkFinal = checks[key];
+                                        if (!checkFinal) {
+                                            break;
+                                        }
+                                    }
+                                    return checkFinal;
+                                });
+                                return opp.products.length > 0;
                             });
-                            return opp.products.length > 0;
-                        });
-                        console.log(scope.base.arrOppFiltered);
-                        scope.base.arrOppFiltered = scope.base.arrOpp;
-                        if (scope.base.selectedOpp != null) {
-                            if (!scope.base.arrOppFiltered.find(a => a.id == scope.base.selectedOpp.id)) {
-                                scope.base.selectedOpp = null;
-                                scope.base.selectedProducts = null;
-                            }                            
+                            console.log(scope.base.arrOppFiltered);
+                            arrHelper.forEach(item => {
+                                scope.base.arrOpp.push(item);       
+                            });
+
+                            var unique = scope.base.arrOpp
+                            .map(e => e['deliveryId'])
+                            .map((e, i, final) => final.indexOf(e) === i && i)
+                            .filter(obj=> scope.base.arrOpp[obj])
+                            .map(e => scope.base.arrOpp[e]);
+
+                            scope.base.arrOppFiltered = unique;
+                            if (scope.base.selectedOpp != null) {
+                                if (!scope.base.arrOppFiltered.find(a => a.id == scope.base.selectedOpp.id)) {
+                                    scope.base.selectedOpp = null;
+                                    scope.base.selectedProducts = null;
+                                }                            
+                            }
+                            scope.isLoading = false;
+                            scope.$apply();
+                        } else {
+                            scope.isLoading = false;
+                            scope.$apply();
+                            Log.fire(result, '9834');
                         }
-                        scope.isLoading = false;
-                        scope.$apply();
                     } else {
                         scope.isLoading = false;
                         scope.$apply();
-                        Log.fire(result, '9834');
+                        Log.fire(null, '9845');
                     }
+                });
+            };
+            scope.callRemote();
+        }
+
+        scope.callRemote = function () {
+            scope.isLoading = true;
+            callRemoteAction('DeliveryChangeAppController.getOpportunityListData', function (result, event) {
+                scope.returnOpp(result, event);
+            });
+        };
+
+        scope.returnOpp = function (result, event){
+            if (event.status) {
+                if (!result.hasErrors) {
+                    scope.base.statusList = [];
+                    scope.base.arrOpp = result.data;
+                    console.log(scope.base.arrOpp);
+                    let arrHelper = scope.base.arrOppFiltered;
+                    scope.base.arrOppFiltered = [];
+                    scope.base.arrOpp = scope.base.arrOpp.filter(function (opp) {
+                        opp.products = opp.products.filter(function (product) {
+                            let checks = {
+                                orderCreatedDate: true,
+                                orderNumber: true,
+                                regional: true,
+                                rtvName: true,
+                                selectedAccount: true,
+                                selectedProduct: true
+                            };
+                            if (scope.filter.selectedAccount != null) {
+                                checks.selectedAccount = scope.filter.selectedAccount.id == product.selectedAccount.id;
+                            }
+                            if (scope.filter.selectedProduct != null) {
+                                checks.selectedProduct = scope.filter.selectedProduct.id == product.productId;
+                            }
+                            if (scope.filter.orderCreatedDate != null) {
+                                checks.orderCreatedDate = scope.filter.orderCreatedDate == formatDateForm(product.orderCreatedDate);
+                            }
+                            if (scope.filter.rtvName != null) {
+                                checks.rtvName = product.hasOwnProperty('rtvName') && product.rtvName.toLowerCase().indexOf(scope.filter.rtvName.toLowerCase()) > -1;
+                            }
+                            if (scope.filter.regional != null) {
+                                checks.regional = product.hasOwnProperty('regionalName') && product.regionalName.toLowerCase().indexOf(scope.filter.regional.toLowerCase()) > -1;
+                            }
+                            if (scope.filter.oppNumber != null) {
+                                checks.oppNumber = product.hasOwnProperty('oppNumber') && product.oppNumber.toLowerCase().indexOf(scope.filter.oppNumber.toLowerCase()) > -1;
+                            }
+                            if (scope.filter.orderNumber != null) {
+                                checks.orderNumber = product.hasOwnProperty('orderNumber') && product.orderNumber.toLowerCase().indexOf(scope.filter.orderNumber.toLowerCase()) > -1;
+                            }
+                            let checkFinal = true;
+                            for (const key in checks) {
+                                checkFinal = checks[key];
+                                if (!checkFinal) {
+                                    break;
+                                }
+                            }
+                            return checkFinal;
+                        });
+                        return opp.products.length > 0;
+                    });
+                    console.log(scope.base.arrOppFiltered);
+                    scope.base.arrOppFiltered = scope.base.arrOpp;
+                    if (scope.base.selectedOpp != null) {
+                        if (!scope.base.arrOppFiltered.find(a => a.id == scope.base.selectedOpp.id)) {
+                            scope.base.selectedOpp = null;
+                            scope.base.selectedProducts = null;
+                        }                            
+                    }
+                    scope.base.lastIndex = scope.base.arrOppFiltered;
+                    scope.isLoading = false;
+                    scope.$apply();
                 } else {
                     scope.isLoading = false;
                     scope.$apply();
-                    Log.fire(null, '9845');
+                    Log.fire(result, '9834');
                 }
-            });
-        };
+            } else {
+                scope.isLoading = false;
+                scope.$apply();
+                Log.fire(null, '9845');
+            }
+        }
 
         scope.callRemote();
 
@@ -638,6 +744,23 @@
             scope.filter.open = false;
             scope.callRemote();
         };
+
+        scope.searchOpp = function(){
+            var numOpp = $('#txtTermSearch').val();
+            console.log(numOpp);
+            scope.isLoading = true;
+            if (numOpp){
+                callRemoteAction('DeliveryChangeAppController.getOpportunityListDataOpp', '%'+numOpp+'%',function (result, event) {
+                    scope.returnOpp(result, event);
+                    scope.isLoading = false;
+                });
+            } else {
+                callRemoteAction('DeliveryChangeAppController.getOpportunityListData', function (result, event) {
+                    scope.returnOpp(result, event);
+                    scope.isLoading = false;
+                });
+            }
+        }
 
         scope.openAdvancedSearch = function (open) {
             scope.filter.open = open;

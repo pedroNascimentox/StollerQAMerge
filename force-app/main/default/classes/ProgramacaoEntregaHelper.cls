@@ -278,7 +278,7 @@ public class ProgramacaoEntregaHelper {
     
     Map<String, List<ProgramacaoEntrega__c>> mapExIdToEmailList = new Map<String, List<ProgramacaoEntrega__c>>();
 
-    for (Account acc : [SELECT Id, Name, ListaPreco__c, GerenteRegional__c, SetorAtividade__c, Agenciamento__c, ExternalId__c FROM Account WHERE Id IN: accountIdSet]){
+    for (Account acc : [SELECT Id, Name, ListaPreco__c, GerenteRegional__c, SetorAtividade__c, Agenciamento__c, ExternalId__c FROM Account WHERE Id IN: accountIdSet FOR UPDATE]){
         mapIdToAccount.put(acc.Id, acc);
     }
 
@@ -923,7 +923,7 @@ public class ProgramacaoEntregaHelper {
             oppIds.add(key);
         }
 
-        List<Opportunity> oppList = [SELECT Id, Name, TotalOpportunityQuantity, AccountId, OwnerId, Owner.Email FROM Opportunity WHERE Id IN : oppIds];
+        List<Opportunity> oppList = [SELECT Id, Name, TotalOpportunityQuantity, AccountId, OwnerId, Owner.Email FROM Opportunity WHERE Id IN : oppIds AND StageName != 'Cancelado'];
 
         for(Opportunity opp : oppList){
 
@@ -1021,5 +1021,21 @@ public class ProgramacaoEntregaHelper {
             ProgramacaoEntregaHelper.enableTrigger();
         }
     }
+   
+    // clean data after credit blocked
     
+    public static void updateProgEntrega(List<ProgramacaoEntrega__c> newRecordsList){
+        ProgramacaoEntregaHelper.disableTrigger();
+        for(ProgramacaoEntrega__c prog: newRecordsList){
+            if(prog.StatusSAP__c == 'Bloqueado Crédito'){
+
+                prog.OwnerId = [select id from user where name ='Developer Nescara' limit 1].Id;
+                prog.NomeRTV__c = null;
+                prog.NomeUsuarioConfirmacao__c = null;
+                prog.DataConfirmacao__c = null;
+                
+            }
+        }
+        programacaoentregahelper.enableTrigger();
+    }
 }

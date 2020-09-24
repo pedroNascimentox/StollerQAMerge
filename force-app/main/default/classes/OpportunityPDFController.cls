@@ -35,7 +35,9 @@ public class OpportunityPDFController {
             account.cnpj__c, account.inscricaoEstadual__c, createdDate, tipoFrete__c, nomeFazenda__c, tipoOrdem__c, moeda__c,
             emailAprovacaoPedidoCliente__c, condicaoPagamento__r.descricao__c, condicaoPagamento__r.jurosComercialFinanceiro__c,
             condicaoPagamento__r.dataVigenciaDe__c, condicaoPagamento__r.dataVigenciaAte__c, nomeRTV__c, vencimentoVendor__c,
-            observacaoPDF__c, localNegocio__r.descricao__c, account.suframa__c, dataVencimento__c, dataInicioJuros__c, campanha__c 
+            observacaoPDF__c, localNegocio__r.descricao__c, account.suframa__c, dataVencimento__c, dataInicioJuros__c, campanha__c,
+            GerenteRegional__r.Name, GerenteRegional__r.Email, GerenteRegional__r.CPF__c, GerenteRegional__r.RG__c,
+            AnalistaCustomerService__r.Name, AnalistaCustomerService__r.Email, AnalistaCustomerService__r.CPF__c, AnalistaCustomerService__r.RG__c
             FROM Opportunity
             WHERE id = :opportunityId
         ];

@@ -184,19 +184,20 @@
             <button class="slds-button slds-button_brand" style="margin: 5px; cursor:pointer;" ng-click="this[searchOpp()]">Filtrar</button>
         </div>
     </div>
-    <div class="wrapper-products" >
+    <div class="wrapper-products">
         <div class="slds-grid">
-            <div class="slds-col slds-size_12-of-12" infinite-scroll="getNextRecords()" infinite-scroll-distance='3'
+            <div class="slds-col slds-size_12-of-12" infinite-scroll="this[getNextRecords()]" infinite-scroll-distance='3'
                             infinite-scroll-use-document-bottom="true">
                 <div class="slds-section slds-is-open opp-item {{ isSelectedOpp(opp.key) }}"
-                    ng-repeat="opp in base.arrOppFiltered  | orderBy: 'name':true">
+                    ng-repeat="opp in base.arrOppFiltered | filter: termSearch | orderBy: 'name':true">
                     <h3 class="slds-section__title slds-theme_shade dblock section-opp">
                         <div class="slds-grid slds-wrap">
                             <div class="slds-col slds-size_10-of-12">
                                 <span class="slds-p-horizontal_small" title="{{opp.name}}">
-                                    {{opp.name}} <small class="slds-p-horizontal_small">{{opp.emitters.join(' • ')}}</small>
+                                    {{opp.name}} <small class="slds-p-horizontal_small">{{opp.emitters.join(' • ')}} </small>
                                 </span>
                                 <small class="slds-p-horizontal_small dblock">{{opp.rtvName}}</small>
+                                <span class="slds-p-horizontal_small">{{opp.selectedAccount.city}}</span>
                             </div>
                             <div class="slds-col slds-size_2-of-12">
                                 <div class="slds-form-element">

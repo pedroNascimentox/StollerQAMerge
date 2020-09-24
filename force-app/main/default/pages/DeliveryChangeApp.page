@@ -18,9 +18,10 @@
                 SEARCH_LOOKUP:                      "{!$RemoteAction.DeliveryChangeAppController.searchLookup}",
             }
         </script>
+        <script src="{!URLFOR($Resource.OpportunityBulkApprovalApp, 'angular-infinite-scroll.min.js')}" type="text/javascript"></script>
+        <apex:includeScript value="{! $Resource.Jquery }" />
         <apex:includeScript value="{! $Resource.Angular }" />
         <apex:includeScript value="{! $Resource.AngularRoute }" />
-        <apex:includeScript value="{! $Resource.Jquery }" />
         <apex:includeScript value="{! $Resource.SweetalertJs }" />
         <apex:includeScript value="{! $Resource.PromisePolyfill }" />
         <apex:includeScript value="{! $Resource.Lookups }" />

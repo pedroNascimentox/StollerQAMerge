@@ -10,6 +10,7 @@ trigger NotaFiscal on NotaFiscal__c (after insert, after update, before insert, 
                 NotaFiscalHelper.addTaxToNotaFiscal(Trigger.new);
                 NotaFiscalHelper.fillOpportunityLookup(Trigger.new);
                 NotaFiscalHelper.changeNotaFiscalOwner(Trigger.new);
+                NotaFiscalHelper.changeManagerialTerritory(Trigger.new);
             }
             when AFTER_INSERT {
                 NotaFiscalHelper.addDateToFields(Trigger.newMap);

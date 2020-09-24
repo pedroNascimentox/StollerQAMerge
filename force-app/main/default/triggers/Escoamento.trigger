@@ -5,6 +5,7 @@ if (EscoamentoHelper.isTriggerEnabled()){
                 EscoamentoHelper.setSaldoLitrosEscoamento(Trigger.new);
                 EscoamentoHelper.changeEscoamentoOwner(Trigger.new);
                 EscoamentoHelper.fillApuracaoRelation(Trigger.new);
+                EscoamentoHelper.changeManagerialTerritory(Trigger.new);
             }
             when BEFORE_UPDATE {
                 EscoamentoHelper.changeEscoamentoOwner(Trigger.new);

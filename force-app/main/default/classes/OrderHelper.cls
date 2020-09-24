@@ -38,7 +38,7 @@ public class OrderHelper extends TriggerContext {
                 Integer qtdOrd = oppIdToOrdMap.get(opp.Id).size();
                 if(opp.ContadorOV__c == null)
                     opp.ContadorOV__c = 0;
-                opp.ContadorOV__c = opp.ContadorOV__c + (isInsert ? opp.ContadorOV__c + qtdOrd : opp.ContadorOV__c - qtdOrd);
+                opp.ContadorOV__c = (isInsert ? opp.ContadorOV__c + qtdOrd : opp.ContadorOV__c - qtdOrd);
                 oppList.add(opp);
             }
         }
@@ -62,16 +62,36 @@ public class OrderHelper extends TriggerContext {
                                                       WHERE Id IN :newOrderMap.keySet()]);
         
         Map<Id, String> orderIdToZTExternalId = new Map<Id, String>();
+        Set<String> zonaOrigemKeys = new Set<String>();
+        Set<String> zonaDestinoKeys = new Set<String>();
         // Opp -> Local de negócio -> ZN origem
         // Opp -> Cliente -> ZN destino
         for (Order order : orderMap.values()) {
-            orderIdToZTExternalId.put(order.Id, order.Opportunity.LocalNegocio__r.ZonaTransporte__r.ExternalId__c + '-' + order.Opportunity.Account.ZonaTransporte__r.ExternalId__c);
+
+            String origemKey = order.Opportunity.LocalNegocio__r.ZonaTransporte__r.ExternalId__c;
+            String destinoKey = order.Opportunity.Account.ZonaTransporte__r.ExternalId__c;
+
+            orderIdToZTExternalId.put(order.Id, origemKey + destinoKey);
+            zonaOrigemKeys.add(origemKey);
+            zonaDestinoKeys.add(destinoKey);
         }
 
-        Itinerario__c[] itinerarioList = [SELECT Id, ExternalId__c FROM Itinerario__c WHERE ExternalId__c IN :orderIdToZTExternalId.values()];
+        Itinerario__c[] itinerarioList = 
+            [
+                SELECT Id, 
+                       ExternalId__c, 
+                       ZonaTransporteOrigem__c, 
+                       ZonaTransporteOrigem__r.ExternalId__c, 
+                       ZonaTransporteDestino__c, 
+                       ZonaTransporteDestino__r.ExternalId__c 
+                FROM Itinerario__c 
+                WHERE ZonaTransporteOrigem__r.ExternalId__c IN :zonaOrigemKeys
+                AND ZonaTransporteDestino__r.ExternalId__c IN :zonaDestinoKeys
+            ];
+            
         Map<String, Id> itinerarioMap = new Map<String, Id>();
         for (Itinerario__c itinerario : itinerarioList) {
-            itinerarioMap.put(itinerario.ExternalId__c, itinerario.Id);
+            itinerarioMap.put(itinerario.ZonaTransporteOrigem__r.ExternalId__c + itinerario.ZonaTransporteDestino__r.ExternalId__c, itinerario.Id);
         }
 
         for (String orderKey : orderMap.keySet()) {
@@ -82,7 +102,7 @@ public class OrderHelper extends TriggerContext {
         OrderHelper.enableTrigger();
     }
 
-    public static void sendIntegratedOVsEmail(Map<Id, Order> oldRecordsMap, Map<Id, Order> newRecordsMap){
+    public static void sendIntegratedOVsEmail(Map<Id, Order> newRecordsMap){
 
         Set<Id> filteredIntegratedOrderIds = new Set<Id>();
 
@@ -94,16 +114,19 @@ public class OrderHelper extends TriggerContext {
         };
 
         for(Order order : newRecordsMap.values()){
-            if(orderTypes.contains(order.tipoOrdem__c) && order.OVSAP__c != null && oldRecordsMap.get(order.id).OVSAP__c == null){
+            if(orderTypes.contains(order.tipoOrdem__c) && order.OVSAP__c != null){
                 filteredIntegratedOrderIds.add(order.id);
             }
         }
+
+        System.debug('filteredIntegratedOrderIds ' + filteredIntegratedOrderIds);
 
         if(!filteredIntegratedOrderIds.isEmpty()){
 
             Map<Id, Order> filteredIntegratedOrders = new Map<Id, Order>([
                 SELECT  id, opportunityId, opportunity.name, clienteEmissor__r.name, 
-                        tipoOrdem__c, valorTotalPedidoBRLUSD__c, rtv__r.name, gerenteRegional__r.name
+                        tipoOrdem__c, valorTotalPedidoBRLUSD__c, rtv__r.name, gerenteRegional__r.name,Moeda__c,
+                        ValorTotalItensPedido__c, ValorPedidoUSD__c
                 FROM Order
                 WHERE id IN: filteredIntegratedOrderIds
             ]);
@@ -111,7 +134,18 @@ public class OrderHelper extends TriggerContext {
             List<Messaging.SingleEmailMessage> mailList = new List<Messaging.SingleEmailMessage>();
             Set<Id> opportunityIdsToUpdate = new Set<Id>();
             Set<String> emailIntegration = IntegrationOVsEmail__c.getAll().keySet();
+            
             for(Order order : filteredIntegratedOrders.values()){
+
+                Decimal valorTotalPedidoBRLUSD = 0;
+
+                if(order.Moeda__c == 'BRL'){
+                    valorTotalPedidoBRLUSD = order.ValorTotalItensPedido__c;
+                }else{
+                    valorTotalPedidoBRLUSD = order.ValorPedidoUSD__c;
+                }
+
+                System.debug('valorTotalPedidoBRLUSD ' + valorTotalPedidoBRLUSD);
 
                 String emailHtmlBody = (
                     '<html>                                                                                                                                              \n' +
@@ -143,11 +177,11 @@ public class OrderHelper extends TriggerContext {
                     '                                                                                                                                                    \n' +
                     '                <tbody>                                                                                                                             \n' +
                     '                   <tr>                                                                                                                             \n' +
-                    '                       <td style="border: 1px solid #000; text-align: center; padding: 0 10px; width: 10%">' + String.valueOf(order.opportunity.name).remove('OPT-')                                + '</td>                                                                             \n' +
+                    '                       <td style="border: 1px solid #000; text-align: center; padding: 0 10px; width: 10%">' + order.OpportunityId != null ? String.valueOf(order.opportunity.name).remove('OPT-')  : ''                              + '</td>                                                                             \n' +
                     '                       <td style="border: 1px solid #000; text-align: center; padding: 0 10px; width: 10%">' + newRecordsMap.get(order.id).OVSAP__c                                                 + '</td>                                                                             \n' +
                     '                       <td style="border: 1px solid #000; text-align: center; padding: 0 10px; width: 25%">' + (String.isBlank(order.clienteEmissor__r.name)? '-' : order.clienteEmissor__r.name)   + '</td>                                                                             \n' +
                     '                       <td style="border: 1px solid #000; text-align: center; padding: 0 10px; width: 10%">' + order.tipoOrdem__c                                                                   + '</td>                                                                             \n' +
-                    '                       <td style="border: 1px solid #000; text-align: center; padding: 0 10px; width: 5%" >' + OpportunityPDFController.getFormattedValue(order.valorTotalPedidoBRLUSD__c)          + '</td>                                                                             \n' +
+                    '                       <td style="border: 1px solid #000; text-align: center; padding: 0 10px; width: 5%" >' + OpportunityPDFController.getFormattedValue(valorTotalPedidoBRLUSD)                   + '</td>                                                                             \n' +
                     '                       <td style="border: 1px solid #000; text-align: center; padding: 0 10px; width: 25%">' + (String.isBlank(order.rtv__r.name)? '-' : order.rtv__r.name)                         + '</td>                                                                             \n' +
                     '                       <td style="border: 1px solid #000; text-align: center; padding: 0 10px; width: 15%">' + (String.isBlank(order.gerenteRegional__r.name)? '-' : order.gerenteRegional__r.name) + '</td>                                                                             \n' +
                     '                   </tr>                                                                                                                            \n' +
@@ -214,54 +248,5 @@ public class OrderHelper extends TriggerContext {
             update opportunitiesToRefreshCountField;
         OpportunityHelper.enableTrigger();
 
-    }
-
-    public static Messaging.SendEmailResult sendIntegrationEmailError(Map<Id, Order> oldContextMap, Map<Id, Order> newContextMap) {
-
-        Set<Id> opportunityIds = new Set<Id>();
-
-        for (Order newOrder : newContextMap.values()) {
-            opportunityIds.add(newOrder.OpportunityId);
-        }
-
-        Map<Id, Opportunity> opportunityMap = new Map<Id, Opportunity>(
-            [
-                SELECT Id, 
-                       Name
-                FROM Opportunity
-                WHERE Id IN :opportunityIds
-            ]
-        );
-        
-        List<String> nameList = new List<String>();
-
-        for (String key : newContextMap.keySet()) {
-
-            Order newOrder = newContextMap.get(key);
-            Order oldOrder = oldContextMap.get(key);
-
-            if (opportunityMap.containsKey(newOrder.OpportunityId)) {
-
-                String opportunityName = opportunityMap.get(newOrder.OpportunityId).Name;
-
-                if (oldOrder.StatusIntegracao__c != Label.ErroEnvio && oldOrder.StatusIntegracao__c != Label.TentativaExcedida && newOrder.StatusIntegracao__c == Label.ErroEnvio && !nameList.contains(opportunityName)) {
-                    nameList.add(opportunityName);
-                }
-            }
-        }
-
-        if (!nameList.isEmpty()) {
-
-            String oppNames = String.join(nameList, '\n');
-            String addressToSend = [SELECT Email__c FROM EmailIntegrationError__mdt WHERE DeveloperName = 'TI'].Email__c;
-
-            if (nameList.size() > 1) {
-                return IntegrationUtils.sendEmail(Label.MensagemInicioTentativaExcedidaPlural + '\n' + oppNames, Label.TentativaExcedida, addressToSend);
-            } else {
-                return IntegrationUtils.sendEmail(Label.MensagemInicioTentativaExcedidaSingular + '\n' + oppNames, Label.TentativaExcedida, addressToSend);
-            }
-        } else {
-            return null;
-        }
     }
 }

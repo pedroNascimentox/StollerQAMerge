@@ -149,4 +149,123 @@ public class TerritorioClienteHelper extends TriggerContext {
 
     }
 
+    public static void managerialTerritoryChange(Map<Id, TerritorioCliente__c> newCustomerTerritories){
+
+        Map<String,Id> mapCustomerTerritory = new Map<String,Id>();
+        Set<Id> territoriesIds = new Set<Id>();
+
+        List<NotaFiscal__c> updateNotaFiscal = new List<NotaFiscal__c>();
+        List<Escoamento__c> updateEscoamento = new List<Escoamento__c>();
+        List<HistoricoNota__c> updateHistoricoNota = new List<HistoricoNota__c>();
+
+        for(TerritorioCliente__c customerTerritory : newCustomerTerritories.values()){
+            mapCustomerTerritory.put(customerTerritory.territorio__c + '-' + customerTerritory.conta__c, customerTerritory.TerritorioGerencial__c);
+            territoriesIds.add(customerTerritory.territorio__c);
+        }
+
+        for(NotaFiscal__c nota : [SELECT Id, Territorio__c, TerritorioGerencial__c, CodigoCliente__c FROM NotaFiscal__c WHERE Territorio__c IN : territoriesIds]){
+            if(mapCustomerTerritory.containsKey(nota.territorio__c + '-' + nota.CodigoCliente__c)){
+                nota.TerritorioGerencial__c =  mapCustomerTerritory.get(nota.territorio__c + '-' + nota.CodigoCliente__c);
+                updateNotaFiscal.add(nota);
+            }
+        }
+
+        for(Escoamento__c escoamento : [SELECT Id, Territorio__c, TerritorioGerencial__c, NomeCliente__c FROM Escoamento__c WHERE Territorio__c IN : territoriesIds]){
+            if(mapCustomerTerritory.containsKey(escoamento.Territorio__c + '-' + escoamento.NomeCliente__c)){
+                escoamento.TerritorioGerencial__c =  mapCustomerTerritory.get(escoamento.Territorio__c + '-' + escoamento.NomeCliente__c);
+                updateEscoamento.add(escoamento);
+            }
+        }
+
+        for(HistoricoNota__c historicoNota : [SELECT Id, IdTerritorioSF__c, TerritorioGerencial__c, IdContaSF__c FROM HistoricoNota__c WHERE IdTerritorioSF__c IN : territoriesIds]){
+            if(mapCustomerTerritory.containsKey(historicoNota.IdTerritorioSF__c + '-' + historicoNota.IdContaSF__c)){
+                historicoNota.TerritorioGerencial__c =  mapCustomerTerritory.get(historicoNota.IdTerritorioSF__c + '-' + historicoNota.IdContaSF__c);
+                updateHistoricoNota.add(historicoNota);
+            }
+        }
+
+        System.debug('updateNotaFiscal ' + updateNotaFiscal);
+        System.debug('updateEscoamento  ' + updateEscoamento);
+
+        if(!updateNotaFiscal.isEmpty()){
+            update updateNotaFiscal;
+        }
+
+        if(!updateEscoamento.isEmpty()){
+            update updateEscoamento;
+        }
+
+        if(!updateHistoricoNota.isEmpty()){
+            update updateHistoricoNota;
+        }
+    } 
+
+    public static void managerialTerritoryChange(Map<Id, TerritorioCliente__c> oldCustomerTerritories, Map<Id, TerritorioCliente__c> newCustomerTerritories){
+
+        Map<Id,NotaFiscal__c> updateNotaFiscal = new Map<Id,NotaFiscal__c>();
+        List<Escoamento__c> updateEscoamento = new List<Escoamento__c>();
+        List<HistoricoNota__c> updateHistoricoNota = new List<HistoricoNota__c>();
+     
+        Map<String,Id> mapCustomerTerritory = new Map<String,Id>();
+        Set<Id> territoriesIds = new Set<Id>();
+        Set<Id> notasIds = new Set<Id>();
+
+        for(TerritorioCliente__c customerTerritory : newCustomerTerritories.values()){
+            if(customerTerritory.TerritorioGerencial__c != oldCustomerTerritories.get(customerTerritory.id).TerritorioGerencial__c){
+                mapCustomerTerritory.put(customerTerritory.territorio__c + '-' + customerTerritory.conta__c, customerTerritory.TerritorioGerencial__c);
+                territoriesIds.add(customerTerritory.territorio__c);
+            }
+        }
+
+        
+        for(NotaFiscal__c nota : [SELECT Id, Territorio__c, TerritorioGerencial__c, CodigoCliente__c FROM NotaFiscal__c WHERE Territorio__c IN : territoriesIds]){
+            if(mapCustomerTerritory.containsKey(nota.territorio__c + '-' + nota.CodigoCliente__c)){
+                nota.TerritorioGerencial__c =  mapCustomerTerritory.get(nota.territorio__c + '-' + nota.CodigoCliente__c);
+                updateNotaFiscal.put(nota.Id,nota);
+            }
+        }
+
+        for(Escoamento__c escoamento : [SELECT Id, Territorio__c, TerritorioGerencial__c, NomeCliente__c FROM Escoamento__c WHERE Territorio__c IN : territoriesIds]){
+            if(mapCustomerTerritory.containsKey(escoamento.Territorio__c + '-' + escoamento.NomeCliente__c)){
+                escoamento.TerritorioGerencial__c =  mapCustomerTerritory.get(escoamento.Territorio__c + '-' + escoamento.NomeCliente__c);
+                updateEscoamento.add(escoamento);
+            }
+        }
+
+        for(HistoricoNota__c historicoNota : [SELECT Id, IdTerritorioSF__c, TerritorioGerencial__c, IdContaSF__c FROM HistoricoNota__c WHERE IdTerritorioSF__c IN : territoriesIds]){
+            if(mapCustomerTerritory.containsKey(historicoNota.IdTerritorioSF__c + '-' + historicoNota.IdContaSF__c)){
+                historicoNota.TerritorioGerencial__c =  mapCustomerTerritory.get(historicoNota.IdTerritorioSF__c + '-' + historicoNota.IdContaSF__c);
+                updateHistoricoNota.add(historicoNota);
+            }
+        }
+
+        Map<Id, NotaFiscalItem__c> notaItemOldContextMap = new Map<Id, NotaFiscalItem__c>();
+
+        for(NotaFiscalItem__c notaItem : [SELECT Id, CriterioApuracao__c, NotaFiscal__c, CodigoMaterial__c FROM NotaFiscalItem__c WHERE NotaFiscal__c IN : updateNotaFiscal.keySet()]){
+            notaItemOldContextMap.put(notaItem.Id, notaItem);
+        }
+
+        if(!updateNotaFiscal.isEmpty()){
+            update updateNotaFiscal.values();
+        }
+
+        Map<Id, NotaFiscalItem__c> notaItemNewContextMap = new Map<Id, NotaFiscalItem__c>();
+
+        for(NotaFiscalItem__c notaItem : [SELECT Id, CriterioApuracao__c, NotaFiscal__c, CodigoMaterial__c FROM NotaFiscalItem__c WHERE NotaFiscal__c IN : updateNotaFiscal.keySet()]){
+            notaItemNewContextMap.put(notaItem.Id, notaItem);
+        }
+
+        if(!updateEscoamento.isEmpty()){
+            update updateEscoamento;
+        }
+
+        if(!updateHistoricoNota.isEmpty()){
+            update updateHistoricoNota;
+        }
+
+         if(!notaItemNewContextMap.isEmpty()){
+            update notaItemNewContextMap.values();
+            NotaFiscalItemHelper.updateApuracaoRelation(notaItemNewContextMap, notaItemOldContextMap);
+        }
+    }
 }

@@ -70,4 +70,29 @@ public class PriceRepository {
 
         return getMostSpecificPrices(a, productIds, effectiveDate, regional);
     }
+
+    public static List<TabelaPreco__c> findByProductIds(Set<Id> productIds){
+        List<TabelaPreco__c> priceBooks = [
+            SELECT 
+                id, 
+                cliente__c, 
+                dataVigenciaFim__c, 
+                dataVigenciaInicial__c, 
+                externalId__c, 
+                hierarquiaCliente__c, 
+                listaPreco__c, 
+                organizacaoVenda__c, 
+                produto__c, 
+                regional__c, 
+                tipoCliente__c, 
+                valor__c
+            FROM TabelaPreco__c 
+            WHERE
+                produto__c IN :productIds AND
+                dataVigenciaInicial__c <= :system.today() AND 
+                dataVigenciaFim__c >= :system.today()
+        ];
+
+        return priceBooks.size() > 0 ? priceBooks : null;
+    }
 }

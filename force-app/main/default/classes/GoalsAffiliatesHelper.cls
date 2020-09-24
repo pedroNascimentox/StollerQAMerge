@@ -78,11 +78,9 @@ public class GoalsAffiliatesHelper extends TriggerContext {
             apuracao.OrcamentoReais__c  = metaFilial.OrcamentoReais__c;
             apuracao.OrcamentoDolar__c  = metaFilial.OrcamentoDolar__c;
             apuracao.Produto__c         = mapIdToMeta.get(metaFilial.MetaMatriz__c).Produto__c;
-            //William Leite - 2020-06-17 - Travando o Escoamento
-            //apuracao.Territorio__c      = mapIdToMeta.get(metaFilial.MetaMatriz__c).Territorio__c;
-            apuracao.Territorio__c      = metaFilial.Territrio__c;
+            apuracao.Territorio__c      = mapIdToMeta.get(metaFilial.MetaMatriz__c).Territorio__c;
             apuracao.DataFaturamento__c = mapIdToMeta.get(metaFilial.MetaMatriz__c).Data__c;
-
+			apuracao.TipoApuracao1__c   = 'Escoamento';
             apuracaoList.add(apuracao);
         } 
         system.debug(idMetaMatriz);
@@ -129,7 +127,7 @@ public class GoalsAffiliatesHelper extends TriggerContext {
                 apuracao.NomeConta__c      = newMetaFilial.Filial__c;
                 apuracao.OrcamentoReais__c = newMetaFilial.OrcamentoReais__c;
                 apuracao.OrcamentoDolar__c = newMetaFilial.OrcamentoDolar__c;
-
+				apuracao.tipoApuracao1__c  = 'Escoamento';
                 system.debug(apuracao);
                 apuracaoList.add(apuracao);
             }

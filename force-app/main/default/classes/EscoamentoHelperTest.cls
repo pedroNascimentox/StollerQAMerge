@@ -171,7 +171,8 @@ public with sharing class EscoamentoHelperTest {
                 Oportunidade__c     = opportunity.Id,
                 Regional__c         = regional.Id,
                 Territorio__c       = territorio.Id,
-                VendedorRTV__c      = user.Id
+                VendedorRTV__c      = user.Id,
+                TerritorioGerencial__c = territorio.Id
             )
         );
         insert notaFiscal1;
@@ -199,14 +200,25 @@ public with sharing class EscoamentoHelperTest {
     }
     @isTest
     public static void testLog2() {        
+
+        Id productId                              = [SELECT id FROM Product2 LIMIT 1].id;
+        String productExternalId                  = [SELECT ExternalId__c FROM Product2 LIMIT 1].ExternalId__c;
+        Id accountId                              = [SELECT id FROM Account LIMIT 1].id;
+        Id territorioId                           = [SELECT Id FROM Territorio__c LIMIT 1].Id;
+        Id notaFiscalItemId                       = [SELECT Id FROM NotaFiscalItem__c LIMIT 1].Id;
+        Id notaFiscalId                           = [SELECT Id FROM NotaFiscal__c LIMIT 1].Id;
+        Id orderId                                = [SELECT Id FROM Order LIMIT 1].Id;
+        Id oppId                                  = [SELECT Id FROM Opportunity LIMIT 1].Id;
+        Id regionalId                             = [SELECT Id FROM Regional__c LIMIT 1].Id;
+        Id userId                                 = [SELECT Id FROM User LIMIT 1].Id;
+        Id culturaId                              = [SELECT Id FROM Cultura__c LIMIT 1].Id;
         
-        Id productId = [SELECT id FROM Product2 LIMIT 1].id;
-        Id accountId = [SELECT id FROM Account LIMIT 1].id;
         Escoamento__c escoamento2 = (Escoamento__c)TestFactory.createSObject(
             new Escoamento__c(
                 Produto__c     = productId,
                 NomeCliente__c = accountId,
-                Quantidade__c  = 6
+                Quantidade__c  = 6,
+                TerritorioGerencial__c = territorioId
             )
         );
         EscoamentoHelper.disableTrigger();
@@ -237,7 +249,9 @@ public with sharing class EscoamentoHelperTest {
                 NrOrdem__c                        = orderId,
                 Oportunidade__c                   = oppId,
                 Regional__c                       = regionalId,
-                Territorio__c                     = territorioId
+                Territorio__c                     = territorioId,
+                TerritorioGerencial__c            = territorioId
+                
             )
         );
         
@@ -260,7 +274,8 @@ public with sharing class EscoamentoHelperTest {
             new Escoamento__c(
                 Produto__c                        = productId,
                 NomeCliente__c                    = accountId,
-                Quantidade__c                     = 6
+                Quantidade__c                     = 6,
+                TerritorioGerencial__c            = territorioId
             )
         );
 
@@ -274,7 +289,8 @@ public with sharing class EscoamentoHelperTest {
                 Territorio__c                     = territorioId,
                 Produto__c                        = productId,
                 NomeCliente__c                    = accountId,
-                Quantidade__c                     = 6
+                Quantidade__c                     = 6,
+                TerritorioGerencial__c            = territorioId
             )
         );
         insert escoamento3;

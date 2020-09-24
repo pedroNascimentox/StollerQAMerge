@@ -1,6 +1,27 @@
 public class NotaFiscalItemHelper extends TriggerContext {
 
-    public static void updateApuracaoRelation(Map<Id, NotaFiscalItem__c> newContextMap) {
+    public static void updateApuracaoRelation(Map<Id, NotaFiscalItem__c> newContextMap, Map<Id, NotaFiscalItem__c> oldContextMap) {
+
+        Set<String> criterioApuracaoOld = new Set<String>();
+
+        List<Apuracao__c> updateApuracoes = new List<Apuracao__c>();
+
+        if(!oldContextMap.isEmpty()){
+            for (NotaFiscalItem__c item : newContextMap.values()) {
+                if(item.CriterioApuracao__c != oldContextMap.get(item.Id).CriterioApuracao__c){
+                    criterioApuracaoOld.add(oldContextMap.get(item.Id).CriterioApuracao__c);
+                }
+            }
+        }
+
+        List<Apuracao__c> apuracoesByCriterioApuracao = [SELECT Id, CriterioApuracao__c FROM Apuracao__c WHERE CriterioApuracao__c IN :criterioApuracaoOld];
+
+        if(!apuracoesByCriterioApuracao.isEmpty()){
+            for(Apuracao__c apuracao : apuracoesByCriterioApuracao){
+                apuracao.Atualizado__c = false;
+                updateApuracoes.add(apuracao);
+            }
+        }
 
         Map<Id, NotaFiscalItem__c> notaFiscalItemMap = new Map<Id, NotaFiscalItem__c>(
             [SELECT Id, CodigoMaterial__c, CriterioApuracao__c, Apuracao__c, NotaFiscal__c FROM NotaFiscalItem__c WHERE Id IN :newContextMap.keySet()]
@@ -20,6 +41,8 @@ public class NotaFiscalItemHelper extends TriggerContext {
         Map<Id, Apuracao__c> apuracaoMap = new Map<Id, Apuracao__c>(
             [SELECT Id, CriterioApuracao__c FROM Apuracao__c WHERE CriterioApuracao__c IN :criterioApuracaoToItemListMap.keySet()]
         );
+ 
+        System.debug('apuracaoMap ' + apuracaoMap);
 
         Map<String, Apuracao__c> criterioToApuracaoMap = new Map<String, Apuracao__c>();
         for (Apuracao__c apuracao : apuracaoMap.values()) {
@@ -27,7 +50,7 @@ public class NotaFiscalItemHelper extends TriggerContext {
         }
 
         notaFiscalMap = new Map<Id, NotaFiscal__c>(
-            [SELECT Id, Territorio__c, DataNF__c, NrOrdem__c, NrOrdem__r.AccountId, NrOrdem__r.Account.ExternalId__c FROM NotaFiscal__c WHERE Id IN :notaFiscalMap.keySet()]
+            [SELECT Id, Territorio__c, DataNF__c, NrOrdem__c, NrOrdem__r.AccountId, NrOrdem__r.Account.ExternalId__c, TerritorioGerencial__c FROM NotaFiscal__c WHERE Id IN :notaFiscalMap.keySet()]
         );
 
         Map<String, Apuracao__c> apuracoesToInsertMap = new Map<String, Apuracao__c>();
@@ -41,17 +64,18 @@ public class NotaFiscalItemHelper extends TriggerContext {
             } else {
                 NotaFiscalItem__c item = criterioApuracaoToItemListMap.get(key)[0]; // getting only the first record data
                 NotaFiscal__c nota = notaFiscalMap.get(item.NotaFiscal__c);
-
+                System.debug('nota.Territorio__C: ' + nota.Territorio__C);
                 if (item.CodigoMaterial__c != null && 
                     nota.NrOrdem__c != null && 
                     nota.NrOrdem__r.AccountId != null && 
                     nota.Territorio__c != null && 
                     nota.DataNF__c != null && 
+                    nota.TerritorioGerencial__c != null &&
                     !apuracoesToInsertMap.containsKey(key)) {
                     apuracoesToInsertMap.put(key,
                         new Apuracao__c(
                             NomeConta__c       = nota.NrOrdem__r.AccountId,
-                            Territorio__c      = nota.Territorio__c,
+                            Territorio__c      = nota.TerritorioGerencial__c,
                             Produto__c         = item.CodigoMaterial__c,
                             DataFaturamento__c = Date.newInstance(nota.DataNF__c.year(), nota.DataNF__c.month(), 01),
                             Atualizado__c      = false
@@ -64,7 +88,12 @@ public class NotaFiscalItemHelper extends TriggerContext {
         update criterioToApuracaoMap.values();
 
         if (!apuracoesToInsertMap.isEmpty()) {
+            System.debug('apuracoesToInsertMap: ' + apuracoesToInsertMap.values());
             insert apuracoesToInsertMap.values();
+        }
+
+        if(!updateApuracoes.isEmpty()){
+            update updateApuracoes;
         }
 
         List<Id> apuracaoIds = new List<Id>();

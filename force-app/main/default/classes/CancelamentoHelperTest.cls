@@ -128,7 +128,9 @@ public with sharing class CancelamentoHelperTest {
         );
         insert order;
 
-        Product2 product = (Product2)TestFactory.createSObject(new Product2());
+        Product2 product = (Product2)TestFactory.createSObject(new Product2(
+            subFamily__c = '029'
+        ));
         insert product;
 
         ProgramacaoEntrega__c programacaoEntrega = (ProgramacaoEntrega__c)TestFactory.createSObject(

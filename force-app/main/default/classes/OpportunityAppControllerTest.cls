@@ -404,6 +404,7 @@ public class OpportunityAppControllerTest {
                     Name, 
                     NomeTerritorio__c, 
                     Regional__c,
+                    Regional__r.ACS__c,
                     Rtv__c, 
                     Rtv__r.Name, 
                     Gerente__c, 

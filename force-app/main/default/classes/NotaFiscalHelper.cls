@@ -27,7 +27,9 @@ public class NotaFiscalHelper extends TriggerContext {
             }
         
         }while (!iterationDate.isSameDay(endDate));
-        List<CotacaoMoeda__c> cotacaoMoeda = new List<CotacaoMoeda__c>([SELECT Id, Data__c, Taxa__c FROM CotacaoMoeda__c WHERE Data__c =: lastDate LIMIT 1]);
+        //List<CotacaoMoeda__c> cotacaoMoeda = new List<CotacaoMoeda__c>([SELECT Id, Data__c, Taxa__c FROM CotacaoMoeda__c WHERE Data__c =: lastDate LIMIT 1]);
+        // Changing the way that select works
+        List<CotacaoMoeda__c> cotacaoMoeda = new List<cotacaoMoeda__c>([select id, data__C, taxa__c from cotacaomoeda__c order by createddate desc Limit 1]);
         system.debug('lastDate = ' + lastDate);
         system.debug('cotacaoMoeda = ' + cotacaoMoeda);
         for (NotaFiscal__c nota : notasFiscais) {
@@ -75,7 +77,7 @@ public class NotaFiscalHelper extends TriggerContext {
             orderIdToNotaFiscalId.put(nota.NrOrdem__c, nota.Id);
         }
 
-        List<Order> orderList = [SELECT Id, NotaFiscal__c FROM Order WHERE Id IN :orderIdToNotaFiscalExternalId.keySet()];
+        List<Order> orderList = [SELECT Id, NotaFiscal__c FROM Order WHERE Id IN :orderIdToNotaFiscalExternalId.keySet() FOR UPDATE];
         for (Order order : orderList) {
             order.NotaFiscal__c = String.join(orderIdToNotaFiscalExternalId.get(order.Id), '-');
         }
@@ -234,6 +236,30 @@ public class NotaFiscalHelper extends TriggerContext {
 
     private static Integer getDayOfTheWeek(Date dt){
         return Math.mod(Date.newInstance(1900, 1, 7).daysBetween(dt),7);
+    }
+
+    public static void changeManagerialTerritory(List<NotaFiscal__c> newRecordsList){
+
+        Map<String,Id> mapCustomerTerritory = new Map<String,Id>();
+
+        Set<Id> territoriesIds = new Set<Id>();
+
+        Set<Id> notasIds = new Set<Id>();
+
+        for(NotaFiscal__c nota : newRecordsList){
+            territoriesIds.add(nota.territorio__c);
+            notasIds.add(nota.Id);
+        }
+
+        for(TerritorioCliente__c customerTerritory : [SELECT Id, territorio__c, TerritorioGerencial__c,Conta__c FROM TerritorioCliente__c WHERE Territorio__c IN : territoriesIds]){
+            mapCustomerTerritory.put(customerTerritory.territorio__c + '-' + customerTerritory.conta__c, customerTerritory.TerritorioGerencial__c);
+        }
+
+        for(NotaFiscal__c nota : newRecordsList){
+            if(mapCustomerTerritory.containsKey(nota.territorio__c + '-' + nota.CodigoCliente__c)){
+                nota.TerritorioGerencial__c =  mapCustomerTerritory.get(nota.territorio__c + '-' + nota.CodigoCliente__c);
+            }
+        }
     }
 
 }

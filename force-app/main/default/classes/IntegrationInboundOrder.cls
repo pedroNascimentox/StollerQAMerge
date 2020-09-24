@@ -292,7 +292,7 @@ global with sharing class IntegrationInboundOrder {
             }
             // System.debug(orderListToUpsert[0].TaxaMedia__c);
 
-            List<Database.UpsertResult> orderResults = Database.upsert(orderListToUpsert, Order.OVSAP__c, false);
+            List<Database.UpsertResult> orderResults = Database.upsert(orderListToUpsert, Order.OVSAP__c, true);
             
             Boolean hasErrorOnOrder = IntegrationUtils.upsertRecords(orderResults, responseMap, orderListToUpsert, Order.OVSAP__c);
             Boolean hasErrorOnOrderItem = false;
@@ -354,11 +354,20 @@ global with sharing class IntegrationInboundOrder {
 
             List<ProgramacaoEntrega__c> newProgramacoesEntrega = new List<ProgramacaoEntrega__c>();
             List<ProgramacaoEntrega__c> newProgramacoesEntregaDelAgro = new List<ProgramacaoEntrega__c>();
+            Map<Id, ProgramacaoEntrega__c> mapProgramacaoEntregaDelAgro = new Map<Id, ProgramacaoEntrega__c>();
+            Map<Id,ProgramacaoEntrega__c> mapProgramacaoEntrega = new Map<Id, ProgramacaoEntrega__c>();
             Map<String, ProgramacaoEntrega__c> programacoesEntregaUpdateZ2 = new Map<String, ProgramacaoEntrega__c>();
             Map<String, ProgramacaoEntrega__c> newProgramacoesEntregaInsertZ2 = new Map<String, ProgramacaoEntrega__c>();
+            Map<Id, ProgramacaoEntrega__c> mapProgramacaoEntregaInsertZ2 = new Map<Id, ProgramacaoEntrega__c>();
+            Map<Id, ProgramacaoEntrega__c> mapProgramacaoEntregaUpdateZ2 = new Map<Id, ProgramacaoEntrega__c>();
             Map<Id, Order> idToOrdMap = null;
             Map<Id, Opportunity> idToOppMap = null;
             Map<Id, Itinerario__c> idToItinerarioMap = null;
+
+            List<Id> newProgramacoesEntregaIds         = new List<Id>();
+            List<Id> newProgramacoesEntregaInsertZ2Ids = new List<Id>();
+            List<Id> programacoesEntregaDelAgroIds     = new List<Id>();
+            List<Id> programacoesEntregaUpdateZ2Ids    = new List<Id>();
 
             Boolean isDelAgro = false;
 
@@ -422,7 +431,6 @@ global with sharing class IntegrationInboundOrder {
                     OrderItem orderItemNew = new OrderItem();
                         
                     orderItemNew.OrderId                         = ord.Id;
-                    orderItemNew.PricebookEntryId                = prodToEntryMap.get(orderitem.Product2Id);
                     orderItemNew.ValorUnitarioComJuros__c        = orderItem.ValorUnitarioComJuros__c;
                     orderItemNew.Quantity                        = orderItem.Quantity;
                     orderItemNew.ValorTotal__c                   = IntegrationUtils.checkDecimal(orderItemNew.ValorUnitarioComJuros__c) * IntegrationUtils.checkDecimal(orderItem.Quantity);
@@ -443,7 +451,6 @@ global with sharing class IntegrationInboundOrder {
                     orderItemNew.UnitPrice                       = orderItem.UnitPrice;
                     orderItemNew.Itinerario__c                   = orderItem.Itinerario__c;
                     orderItemNew.NumeroPedidoCliente__c          = orderItem.NumeroPedidoCliente__c;
-                    orderItemNew.Product2Id                      = orderItem.Product2Id;
                     orderItemNew.Cultura__c                      = orderItem.Cultura__c;
                     orderItemNew.LocalNegocio__c                 = orderItem.LocalNegocio__c;
                     orderItemNew.DataEntrega__c                  = orderItem.DataEntrega__c;
@@ -485,23 +492,47 @@ global with sharing class IntegrationInboundOrder {
                     if(existentOrder.tipoOrdem__c == 'Exportação'){
                         orderItemNew.ValorTotalUSD__c                = orderItem.ValorTotal__c;
                         orderItemNew.ValorTotal__c                = orderItemNew.ValorTotalUSD__c * existentOrder.TaxaMedia__c;
-                    }else{
-                        orderItemNew.ValorTotalUSD__c                = orderItem.ValorTotal__C / existentOrder.TaxaMedia__c;
-                    }
-                    if(!externalToOrdITemMap.containsKey(orderItem.ExternalId__c)){
-                        orderItemNew.unitPrice = orderItem.ValorUnitarioComJuros__c;
-                        if(orderItem.MotivoRecusaItem__c != 'Z2')
+                        if(!externalToOrdITemMap.containsKey(orderItem.ExternalId__c)){
+                            orderItemNew.unitPrice = orderItem.ValorUnitarioComJuros__c;
+                            orderItemNew.PricebookEntryId = prodToEntryMap.get(orderitem.Product2Id);
+                            orderItemNew.Product2Id       = orderItem.Product2Id;
                             orderItemListToInsert.add(orderItemNew);
-                        else
-                            orderItemListToInsertZ2.add(orderItemNew);
-                    }else{
-                        if(orderItem.MotivoRecusaItem__c != 'Z2')
+                        }else{
                             orderItemListToUpdate.add(orderItemNew);
-                        else
-                            orderItemListToUpdateZ2.add(orderItemNew);
-                    }
+                        }
+                    } 
+                    if(orderItem.MotivoRecusaItem__c != 'Z2'){
+                        if(existentOrder.tipoOrdem__c != 'Exportação'){
+                            if(!externalToOrdITemMap.containsKey(orderItem.ExternalId__c)){
+                                orderItemNew.ValorTotalUSD__c                = orderItem.ValorTotal__C / existentOrder.TaxaMedia__c;
+                                orderItemNew.unitPrice = orderItem.ValorUnitarioComJuros__c;
+                                orderItemNew.PricebookEntryId = prodToEntryMap.get(orderitem.Product2Id);
+                                orderItemNew.Product2Id       = orderItem.Product2Id;
+                                orderItemListToInsert.add(orderItemNew);
+                            }else{
+                                // System.debug(orderItem.ValorTotal__C);
+                                // System.debug(ord.TaxaMedia__c);
+                                orderItemNew.ValorTotalUSD__c                = orderItem.ValorTotal__C / existentOrder.TaxaMedia__c;
+                                orderItemListToUpdate.add(orderItemNew);
+                            }
+                        }
+                    }else{
 
-                    if(orderItem.MotivoRecusaItem__c == 'Z2'){
+                        if(existentOrder.tipoOrdem__c != 'Exportação'){
+                            if(!externalToOrdITemMap.containsKey(orderItem.ExternalId__c)){
+                                orderItemNew.ValorTotalUSD__c                = orderItem.ValorTotal__C / existentOrder.TaxaMedia__c;
+                                orderItemNew.unitPrice = orderItem.ValorUnitarioComJuros__c;
+                                orderItemNew.PricebookEntryId = prodToEntryMap.get(orderitem.Product2Id);
+                                orderItemNew.Product2Id       = orderItem.Product2Id;
+                                orderItemListToInsertZ2.add(orderItemNew);
+                            }else{
+                                // System.debug(orderItem.ValorTotal__C);
+                                // System.debug(ord.TaxaMedia__c);
+                                orderItemNew.ValorTotalUSD__c                = orderItem.ValorTotal__C / existentOrder.TaxaMedia__c;
+                                orderItemListToUpdateZ2.add(orderItemNew);
+
+                            }
+                        }
                         if(orderItemNew.HeaderOrderItem__c){
                             Boolean isInsert = !externalToOrdITemMap.containsKey(orderItem.ExternalId__c);
                             ProgramacaoEntrega__c programacaoEntrega =    new ProgramacaoEntrega__c();
@@ -514,7 +545,7 @@ global with sharing class IntegrationInboundOrder {
                             programacaoEntrega.DataEntrega__c             = orderItemNew.DataEntrega__c;
                             programacaoEntrega.DataIntegracao__c          = null;
                             programacaoEntrega.Confirmado__c              = false;
-                            programacaoEntrega.Produto__c                 = orderItemNew.Product2Id;
+                            programacaoEntrega.Produto__c                 = orderItem.Product2Id;
                             programacaoEntrega.IdOportunidade__c          = ord.OpportunityId;
                             programacaoEntrega.QuantidadeProgramada__c    = orderItemNew.QuantidadeTotal__C;                   
                             programacaoEntrega.Cultura__c =  orderItemNew.Cultura__c; 
@@ -587,11 +618,11 @@ global with sharing class IntegrationInboundOrder {
                 // System.debug(orderItemListToUpdate);
                 // System.debug(orderItemListToUpdateZ2);
                 // System.debug('orderItemListToInsert => ' + JSON.serializePretty(orderItemListToInsert));
-                insResults = Database.upsert(orderItemListToInsert,  false);
-                insResultsZ2 = Database.upsert(orderItemListToInsertZ2,  false);
+                insResults = Database.upsert(orderItemListToInsert,  true);
+                insResultsZ2 = Database.upsert(orderItemListToInsertZ2,  true);
                 ProgramacaoEntregaHelper.disableTrigger();
-                upsResults = Database.upsert(orderItemListToUpdate, OrderItem.ExternalId__c, false);
-                upsResultsZ2 = Database.upsert(orderItemListToUpdateZ2, OrderItem.ExternalId__c, false);
+                upsResults = Database.upsert(orderItemListToUpdate, OrderItem.ExternalId__c, true);
+                upsResultsZ2 = Database.upsert(orderItemListToUpdateZ2, OrderItem.ExternalId__c, true);
                 ProgramacaoEntregaHelper.enableTrigger();
 
                 /*
@@ -605,15 +636,48 @@ global with sharing class IntegrationInboundOrder {
                 */
 
                 if (!programacoesEntregaUpdateZ2.values().isEmpty()) {
+
+                    for(ProgramacaoEntrega__c delivery : programacoesEntregaUpdateZ2.values()){
+                        programacoesEntregaUpdateZ2Ids.add(delivery.Id);
+                    }
+
+                    List<ProgramacaoEntrega__c> lstProgramacaoEntregaUpdateZ2 = [SELECT Id, CriterioApuracao__c, EmissorOrdem__C, Territorio__c, 
+                                                                                Produto__c, DataFaturamento__c, Apuracao__c, TipoOrdem__c
+                                                                                FROM ProgramacaoEntrega__c WHERE Id IN : programacoesEntregaUpdateZ2Ids];
+                    
+                    for(ProgramacaoEntrega__c delivery : lstProgramacaoEntregaUpdateZ2){
+                        if(!mapProgramacaoEntregaUpdateZ2.containsKey(delivery.Id))
+                            mapProgramacaoEntregaUpdateZ2.put(delivery.Id, delivery);
+                    }
+
                     ProgramacaoEntregaHelper.disableTrigger();
                     System.debug('IGNI programacoesEntregaUpdateZ2 => ' + JSON.serializePretty(programacoesEntregaUpdateZ2));
                     update programacoesEntregaUpdateZ2.values();
+                    ProgramacaoEntregaHelper.updateApuracaoRelation(mapProgramacaoEntregaUpdateZ2);
                     ProgramacaoEntregaHelper.enableTrigger();
                 }
                 if (!newProgramacoesEntregaInsertZ2.values().isEmpty()) {
+                    
                     ProgramacaoEntregaHelper.disableTrigger();
                     System.debug('PROMPTO newProgramacoesEntregaInsertZ2 => ' + JSON.serializePretty(newProgramacoesEntregaInsertZ2));
                     insert newProgramacoesEntregaInsertZ2.values();
+
+                    for(ProgramacaoEntrega__c delivery : newProgramacoesEntregaInsertZ2.values()){
+                        newProgramacoesEntregaInsertZ2Ids.add(delivery.Id);
+                    }
+
+                    List<ProgramacaoEntrega__c> lstProgramacaoEntregaZ2 = [SELECT Id, CriterioApuracao__c, EmissorOrdem__C, Territorio__c, 
+                                                                          Produto__c, DataFaturamento__c, Apuracao__c, TipoOrdem__c
+                                                                          FROM ProgramacaoEntrega__c WHERE Id IN : newProgramacoesEntregaInsertZ2Ids];
+
+                    for(ProgramacaoEntrega__c delivery : lstProgramacaoEntregaZ2){
+                        if(!mapProgramacaoEntregaInsertZ2.containsKey(delivery.Id))
+                            mapProgramacaoEntregaInsertZ2.put(delivery.Id, delivery);
+                    }
+
+
+                    ProgramacaoEntregaHelper.updateApuracaoRelation(mapProgramacaoEntregaInsertZ2);
+                    ProgramacaoEntregaHelper.changeProgramacaoEntregaOwner(lstProgramacaoEntregaZ2);
                     ProgramacaoEntregaHelper.enableTrigger();
                 }
                 // System.debug('newProgramacoesEntregaInsertZ2 => ' + JSON.serializePretty(newProgramacoesEntregaInsertZ2));
@@ -731,7 +795,7 @@ global with sharing class IntegrationInboundOrder {
 
                     ProgramacaoEntrega__c programacaoEntrega = new ProgramacaoEntrega__c(
                         Status__c                  = (oi.MotivoRecusaItem__c != 'ZS' ? 'Integrado' : 'Cancelado'),
-                        StatusSAP__c               = oi.StatusSAP__c == 'Produto Indisponível' ? 'Produto Indisponível' : (oi.MotivoRecusaItem__c != 'ZS' ? 'Confirmado' : 'Cancelado'),
+                        StatusSAP__c               = oi.StatusSAP__c == 'Bloqueio de Remessa' ? 'Bloqueio de Remessa' : (oi.StatusSAP__c == 'Produto Indisponível' ? 'Produto Indisponível' : (oi.MotivoRecusaItem__c != 'ZS' ? 'Confirmado' : 'Cancelado')),
                         DataEntrega__c             = oi.DataEntrega__c,
                         EmissorOrdem__c            = oi.order.ClienteEmissor__c,
                         DataIntegracao__c          = Date.Today(),
@@ -792,16 +856,48 @@ global with sharing class IntegrationInboundOrder {
                 }
 
                 if (!newProgramacoesEntregaDelAgro.isEmpty()) {
+
+                    for(ProgramacaoEntrega__c delivery : newProgramacoesEntregaDelAgro){
+                        programacoesEntregaDelAgroIds.add(delivery.Id);
+                    }
+
+                    List<ProgramacaoEntrega__c> lstProgramacaoEntregaDelAgro = [SELECT Id, CriterioApuracao__c, EmissorOrdem__C, Territorio__c, 
+                                                                                Produto__c, DataFaturamento__c, Apuracao__c, TipoOrdem__c
+                                                                                FROM ProgramacaoEntrega__c WHERE Id IN : programacoesEntregaDelAgroIds];
+
+                    for(ProgramacaoEntrega__c delivery : lstProgramacaoEntregaDelAgro){
+                        if(!mapProgramacaoEntregaDelAgro.containsKey(delivery.Id)){
+                            mapProgramacaoEntregaDelAgro.put(delivery.Id, delivery);
+                        }
+                    }
+
                     ProgramacaoEntregaHelper.disableTrigger();
                     update newProgramacoesEntregaDelAgro;
+                    ProgramacaoEntregaHelper.updateApuracaoRelation(mapProgramacaoEntregaDelAgro);
                     System.debug('DELAGRO newProgramacoesEntregaDelAgro => ' + JSON.serializePretty(newProgramacoesEntregaDelAgro));
                     ProgramacaoEntregaHelper.enableTrigger();
                 }
 
                 if (!newProgramacoesEntrega.isEmpty()) {
+
                     ProgramacaoEntregaHelper.disableTrigger();
                     System.debug('NEWDELIVERY newProgramacoesEntregaDelAgro => ' + JSON.serializePretty(newProgramacoesEntregaDelAgro));
                     insert newProgramacoesEntrega;
+
+                    for(ProgramacaoEntrega__c delivery : newProgramacoesEntrega){
+                        newProgramacoesEntregaIds.add(delivery.Id);
+                    }
+
+                    List<ProgramacaoEntrega__c> lstProgramacaoEntrega = [SELECT Id, CriterioApuracao__c, EmissorOrdem__C, Territorio__c, 
+                                                                        Produto__c, DataFaturamento__c,Apuracao__c, TipoOrdem__c
+                                                                        FROM ProgramacaoEntrega__c WHERE Id IN : newProgramacoesEntregaIds];
+
+                    for(ProgramacaoEntrega__c delivery : lstProgramacaoEntrega){
+                        if(!mapProgramacaoEntrega.containsKey(delivery.Id))
+                            mapProgramacaoEntrega.put(delivery.Id, delivery);
+                    }
+                    
+                    ProgramacaoEntregaHelper.updateApuracaoRelation(mapProgramacaoEntrega);
                     ProgramacaoEntregaHelper.enableTrigger();
                 }
 
@@ -872,7 +968,9 @@ global with sharing class IntegrationInboundOrder {
                                ValorTotal__c,
                                DescontoConcedido__c,
                                IdOrderItem__c,
-                               PrecoVendasJurosUSD__c
+                               PrecoVendasJurosUSD__c,
+                               CriterioApuracao__c,
+                               Apuracao__c
                         FROM ProgramacaoEntrega__c 
                         WHERE Id IN :itemIdToProgramacaoEntregaIdMap.values()
                         OR Id IN : deleteDeliverySet
@@ -885,7 +983,7 @@ global with sharing class IntegrationInboundOrder {
                         OrderItem ordItem = orderItems.get(programacaoEntregaIdToItemIdMap.get(id));
                         if(programacaoEntrega.Status__c != 'Solicitação alteração data de entrega' && programacaoEntrega.Status__c != 'Solicitado Cancelamento')
                             programacaoEntrega.Status__c                  = (ordItem.MotivoRecusaItem__c != 'ZS' ? 'Integrado' : 'Cancelado');
-                        programacaoEntrega.StatusSAP__c               = ordItem.StatusSAP__C == 'Produto Indisponível' ? ordItem.StatusSAP__c : (ordItem.MotivoRecusaItem__c != 'ZS' ? ordItem.StatusSAP__c : 'Cancelado');
+                        programacaoEntrega.StatusSAP__c               = ordItem.StatusSAP__c == 'Bloqueio de Remessa' ? 'Bloqueio de Remessa' : (ordItem.StatusSAP__c == 'Produto Indisponível' ? 'Produto Indisponível' : (ordItem.MotivoRecusaItem__c != 'ZS' ? 'Confirmado' : 'Cancelado'));
                         programacaoEntrega.QuantidadeProgramada__c    = ordItem.QuantidadeTotal__C;
                         programacaoEntrega.QuantidadeDisponivelSAP__c = ordItem.QuantidadeConfirmada__c;
                         programacaoEntrega.DataEntrega__c             = ordItem.DataEntrega__c;
@@ -920,6 +1018,7 @@ global with sharing class IntegrationInboundOrder {
                     updateTotalPrice(programacoesEntrega.values(), mapIdToProduct, Taxamedia);
                     System.debug('FINAL programacoesEntrega => ' + JSON.serializePretty(programacoesEntrega));
                     update programacoesEntrega.values();
+                    ProgramacaoEntregaHelper.updateApuracaoRelation(programacoesEntrega);
                     ProgramacaoEntregaHelper.enableTrigger();
                 }
                 ProgramacaoEntregaHelper.disableTrigger();
@@ -978,6 +1077,8 @@ global with sharing class IntegrationInboundOrder {
                     ordItem.StatusSAP__c = 'Bloqueio de Remessa';
                 }else if(!String.isBlank(ordItem.numeroRemessa__c)){
                     ordItem.StatusSAP__c = 'Em Remessa';
+                }else{
+                    ordItem.StatusSAP__c = 'Bloqueio de Remessa';
                 }
             } else if(!String.isBlank(ordItem.MotivoRecusaItem__c)){
                 if(ordItem.SaldoFornecer__c != 0){
@@ -993,6 +1094,8 @@ global with sharing class IntegrationInboundOrder {
                 }else if (ordItem.QuantidadeConfirmada__c < ordITem.Quantity){
                     ordItem.StatusSAP__c = 'Confirmado Parcial';
                 }
+            }else if(!String.isBlank(currentOrd.BloqueioRemessa__c)){
+                ordItem.StatusSAP__c = 'Bloqueio de Remessa';
             }
         }else{
             ordItem.StatusSAP__c = (ordItem.StatusGlobalItem__c == 'B' ?  'Faturado Parcial' : (ordItem.StatusGlobalItem__c == 'C' ? 'Faturado' : ordITem.StatusSAP__C));

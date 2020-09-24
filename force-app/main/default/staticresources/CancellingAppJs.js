@@ -376,7 +376,7 @@
                                     checks.selectedAccount = scope.filter.selectedAccount.id == product.selectedAccount.id;
                                 }
                                 if (scope.filter.deliveryDate != null) {
-                                    checks.deliveryDate = scope.filter.deliveryDate == formatDateFilter(product.oppCreatedDate);
+                                    checks.deliveryDate = scope.filter.deliveryDate == formatDateForm(product.oppCreatedDate);
                                 }
                                 if (scope.filter.rtvName != null) {
                                     checks.rtvName = product.hasOwnProperty('rtvName') && product.rtvName.toLowerCase().indexOf(scope.filter.rtvName.toLowerCase()) > -1;
@@ -529,7 +529,7 @@
                                 checks.selectedAccount = scope.filter.selectedAccount.id == product.selectedAccount.id;
                             }
                             if (scope.filter.deliveryDate != null) {
-                                checks.deliveryDate = scope.filter.deliveryDate == formatDateFilter(product.oppCreatedDate);
+                                checks.deliveryDate = scope.filter.deliveryDate == formatDateForm(product.oppCreatedDate);
                             }
                             if (scope.filter.rtvName != null) {
                                 checks.rtvName = product.hasOwnProperty('rtvName') && product.rtvName.toLowerCase().indexOf(scope.filter.rtvName.toLowerCase()) > -1;
@@ -1886,7 +1886,7 @@ function formatDateForm(date) {
     if (!(date instanceof Date)) {
         return false;
     }
-    return sSize(date.getUTCFullYear()) + '-' + sSize(date.getUTCMonth() + 1) + '-' + sSize(date.getUTCDate());
+    return sSize(date.getUTCFullYear()) + '-' + sSize(date.getUTCMonth() + 1) + '-' + sSize(date.getDate());
 }
 
 function areDatesEqual(VAR_d1, VAR_d2) {

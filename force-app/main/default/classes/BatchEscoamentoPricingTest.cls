@@ -198,6 +198,7 @@ public with sharing class BatchEscoamentoPricingTest {
                 QuantidadeNota__c = 50
             )
         );
+        NotaFiscalItemHelper.disableTrigger();
         insert notaFiscalItem1;
 
         NotaFiscalItem__c notaFiscalItem2 = (NotaFiscalItem__c)TestFactory.createSObject(
@@ -232,6 +233,8 @@ public with sharing class BatchEscoamentoPricingTest {
         );
         insert escoamento1;
 
+        NotaFiscalItemHelper.enableTrigger();
+
         Escoamento__c escoamento2 = (Escoamento__c)TestFactory.createSObject(
             new Escoamento__c(
                 Territorio__c = territorio.Id,
@@ -240,7 +243,9 @@ public with sharing class BatchEscoamentoPricingTest {
                 Quantidade__c   = 100
             )
         );
+        EscoamentoHelper.disableTrigger();
         insert escoamento2;
+        EscoamentoHelper.enableTrigger();
 
         Test.startTest();
 
@@ -276,21 +281,21 @@ public with sharing class BatchEscoamentoPricingTest {
         List<CronTrigger> schedule = [SELECT Id, CronJobDetail.Name, CronExpression, TimesTriggered, NextFireTime 
                                         FROM CronTrigger 
                                        WHERE CronJobDetail.Name = 'Update Escoamento Pricing'];
-      
+        
         String jobId;
-        // if (schedule.size() == 0){
-        //     jobId = BatchEscoamentoPricing.setSchedule();
-        // } else {
-        //     System.abortJob(schedule[0].Id);
-        //     jobId = BatchEscoamentoPricing.setSchedule();
-        // }
-        // CronTrigger ct = [SELECT Id, CronExpression, TimesTriggered, NextFireTime 
-        //                     FROM CronTrigger 
-        //                    WHERE Id = :jobId];
+        if (schedule.size() == 0){
+            jobId = BatchEscoamentoPricing.setSchedule();
+        } else {
+            System.abortJob(schedule[0].Id);
+            jobId = BatchEscoamentoPricing.setSchedule();
+        }
+        CronTrigger ct = [SELECT Id, CronExpression, TimesTriggered, NextFireTime 
+                            FROM CronTrigger 
+                           WHERE Id = :jobId];
 
         Test.stopTest();
 
-        //System.assertEquals('0 0 0 * * ? *', ct.CronExpression);
-        //System.assertEquals(Datetime.now().addDays(1).day(), ct.NextFireTime.day());
+        System.assertEquals('0 0 0 * * ? *', ct.CronExpression);
+        System.assertEquals(Datetime.now().addDays(1).day(), ct.NextFireTime.day());
     }
 }

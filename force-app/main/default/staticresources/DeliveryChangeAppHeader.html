@@ -209,7 +209,7 @@
                                                                                     xlink:href="/apexpages/slds/latest/assets/icons/utility-sprite/svg/symbols.svg#company">
                                                                                 </use>
                                                                             </svg>
-                                                                            {{product.selectedAccount != null ? product.selectedAccount.name : '&nbsp;'}}
+                                                                            {{product.selectedAccount != null ? product.selectedAccount.name + ' - ' + product.selectedAccount.city : '&nbsp;'}}
                                                                         </span>
                                                                     </small>
                                                                     <small ng-if="product.orderType == 'Remanejamento'">

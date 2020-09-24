@@ -277,10 +277,12 @@ public class ProgramacaoEntregaHelperTest {
                 CodigoMaterial__c = product.Id,
                 Cultura__c        = cultura.Id,
                 Litros__c         = 50
+
             )
         );
+        notafiscalitemhelper.disabletrigger();
         insert notaFiscalItem1;
-
+		notafiscalitemhelper.enabletriggeR();
         Apuracao__c apuracao = new Apuracao__c(
             NomeConta__c       = notaFiscal1.CodigoCliente__c,
             Territorio__c      = notaFiscal1.Territorio__c,
@@ -423,11 +425,15 @@ public class ProgramacaoEntregaHelperTest {
             ClientePlanoIncentivo__c  = clientePlanoIncentivo.Id
         );
         deliveryList.add(delivery);
-        
+
         insert deliveryList;
 
         delivery.QuantidadeProgramada__c = 90;
         update delivery;
+        // update for delivery
+        delivery.StatusSAP__c = 'Bloqueado Crédito';
+        update delivery;
+
 
     }
    

@@ -73,7 +73,7 @@ public with sharing class IntegrationInboundProduct2Test {
 
     }
     @isTest
-    public static void testNewField() {
+    public static void testNewFieldSubFamily() {
 
         Map<Id, String> lookups = new Map<Id, String>();
 
@@ -93,8 +93,10 @@ public with sharing class IntegrationInboundProduct2Test {
         
         Product2 product1 = (Product2)TestFactory.createSObject(new Product2(
             ProdutoSubstituto__c = produtoSustituto.Id,
-            SubFamily__c = 'AZOKOP'
+            SubFamily__c = '001',
+            TipoDeMaterial__c = 'FERT'
         ));
+        System.debug('Product1.Id = ' + product1.Id);
         Product2 productError = (Product2)TestFactory.createSObject(new Product2());
         productError.Description = null;
 
@@ -140,9 +142,10 @@ public with sharing class IntegrationInboundProduct2Test {
 
         // IntegrationInboundProduct2.upsertProduct2(new List<TemplateDataIntegrationFields.Product2INData>{deserializedProduct4});
 
-        List<Product2> receivedProducts = [SELECT Id, SubFamily__c FROM Product2 WHERE ExternalId__c = :product1.ExternalId__c OR ExternalId__c = :productError.ExternalId__c LIMIT 1];
+        List<Product2> receivedProducts = [SELECT Id, SubFamily__c, TipoDeMaterial__c FROM Product2 WHERE ExternalId__c = :product1.ExternalId__c OR ExternalId__c = :productError.ExternalId__c LIMIT 1];
 
-        System.assertEquals('AZOKOP', receivedProducts[0].SubFamily__c);
+        System.assertEquals('001', receivedProducts[0].SubFamily__c);
+        System.assertEquals('FERT', receivedProducts[0].TipoDeMaterial__c);
 
     }
 }

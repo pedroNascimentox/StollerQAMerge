@@ -250,19 +250,24 @@ public class EscoamentoHelper extends TriggerContext {
         //Iterates over Escoamento__c records and compares them with apuracaoMap
         //If already has an Apuracao__c record with the same CriterioApuracao__c fill the relationship on Escoamento__c record, else creates a new Apuracao__c
         for(Escoamento__c escoamentoRecord : newRecordsList){
+            System.debug('escoamentoRecord.CriterioApuracao__c ' + escoamentoRecord.CriterioApuracao__c);
             if(apuracaoMap.containsKey(escoamentoRecord.CriterioApuracao__c)){
                 escoamentoRecord.Apuracao__c = apuracaoMap.get(escoamentoRecord.CriterioApuracao__c).Id;
             }else{
                 Apuracao__c newApuracao = new Apuracao__c(
                     NomeConta__c = escoamentoRecord.NomeCliente__c,
-                    Territorio__c = escoamentoRecord.Territorio__c,
+                    Territorio__c = escoamentoRecord.TerritorioGerencial__c,
                     Produto__c = escoamentoRecord.Produto__c,
-                    DataFaturamento__c = escoamentoRecord.DataApuracao__c
+                    DataFaturamento__c = escoamentoRecord.DataApuracao__c,
+                    // temporary attribute for set tipoApuracao1__c
+                    tipoApuracao1__c = 'Escoamento'
                 );
                 withoutApuracao.add(escoamentoRecord);
                 apuracaoToInsert.put(escoamentoRecord.CriterioApuracao__c, newApuracao);
             }
         }
+
+        System.debug('apuracaoToInsert ' + apuracaoToInsert);
 
         if(apuracaoToInsert.size() > 0){
             insertApuracao(withoutApuracao, apuracaoToInsert);
@@ -278,8 +283,93 @@ public class EscoamentoHelper extends TriggerContext {
         for(Escoamento__c escoamento : withoutApuracao){
             if(apuracaoToInsert.containsKey(escoamento.CriterioApuracao__c)){
                 escoamento.Apuracao__c = apuracaoToInsert.get(escoamento.CriterioApuracao__c).Id;
+            }else{
+                escoamento.Apuracao__c = apuracaoToInsert.get(escoamento.CriterioApuracao__c).Id;
             }
         }
 
     }
+
+    public static void changeManagerialTerritory(List<Escoamento__c> newRecordsList){
+
+        Map<String,Id> mapCustomerTerritory = new Map<String,Id>();
+
+        Set<Id> territoriesIds = new Set<Id>();
+
+        for(Escoamento__c escoamento : newRecordsList){
+            territoriesIds.add(escoamento.territorio__c);
+        }
+
+        for(TerritorioCliente__c customerTerritory : [SELECT Id, territorio__c, TerritorioGerencial__c, Conta__c FROM TerritorioCliente__c WHERE Territorio__c IN : territoriesIds]){
+            mapCustomerTerritory.put(customerTerritory.territorio__c + '-' + customerTerritory.conta__c, customerTerritory.TerritorioGerencial__c);
+        }
+
+        for(Escoamento__c escoamento : newRecordsList){
+            if(mapCustomerTerritory.containsKey(escoamento.territorio__c + '-' + escoamento.NomeCliente__c)){
+                escoamento.TerritorioGerencial__c =  mapCustomerTerritory.get(escoamento.territorio__c + '-' + escoamento.NomeCliente__c);
+            }
+        }
+    }
+	/*
+    public static void updatePrecificaoEscoamento(List<Escoamento__c> newRecordsList){
+        Map<Id, Escoamento__c> escoamentoWithoutNotaItemMap = new Map<Id, Escoamento__c>();
+        Map<Id, List<NotaFiscalItem__c>> escoamentoNotaItemMap = new Map<Id, List<NotaFiscalItem__c>>();
+        Map<String, List<NotaFiscalItem__c>> keyToNotaItemMap = new Map<String, List<NotaFiscalItem__c>>();
+        List<Id> clientList = Collection.of(newRecordsList).pluckIds(Escoamento__c.NomeCliente__c);
+        List<Id> territorioList = Collection.of(newRecordsList).pluckIds(Escoamento__c.Territorio__c);
+        List<Id> productList = Collection.of(newRecordsList).pluckIds(Escoamento__c.Produto__c);
+
+        // Gets all NotaFiscalItem records with same CodigoCliente__c, Territorio__c and Product as the Escoamento__c records
+        List<NotaFiscalItem__c> notaFiscalItemList = new List<NotaFiscalItem__c>([  SELECT Id, 
+                                                                                        ValorTotalItem__c, 
+                                                                                        NotaFiscal__r.CodigoCliente__c, 
+                                                                                        NotaFiscal__r.Territorio__c, 
+                                                                                        CodigoMaterial__c 
+                                                                                    FROM NotaFiscalItem__c 
+                                                                                    WHERE NotaFiscal__r.NomeCliente__c IN :clientList 
+                                                                                    AND NotaFiscal__r.Territorio__c IN :territorioList 
+                                                                                    AND CodigoMaterial__c IN :productList
+                                                                                    AND CreatedDate >= LAST_N_DAYS:365]);
+
+        //Iterates over query result and populates keyToNotaItemMap. Key being ClientId + TerritorioId + ProductId
+        for(NotaFiscalItem__c notaItem : notaFiscalItemList){
+            if(!keyToNotaItemMap.containsKey((String) notaItem.NotaFiscal__r.CodigoCliente__c + (String) notaItem.NotaFiscal__r.Territorio__c + (String) notaItem.CodigoMaterial__c)){
+                keyToNotaItemMap.put((String) notaItem.NotaFiscal__r.CodigoCliente__c + (String) notaItem.NotaFiscal__r.Territorio__c + (String) notaItem.CodigoMaterial__c, new List<NotaFiscalItem__c>{notaItem});
+            }
+            keyToNotaItemMap.get((String) notaItem.NotaFiscal__r.CodigoCliente__c + (String) notaItem.NotaFiscal__r.Territorio__c + (String) notaItem.CodigoMaterial__c).add(notaItem);
+            
+        }
+
+        //Iterates over Escoamento__c new records list, compare key values from keyToNotaItemMap to get the NotaFiscalItem values. 
+        
+        for(Escoamento__c escoamento : newRecordsList){
+            String escoamentoKey = (String) escoamento.NomeCliente__c + (String) escoamento.Territorio__c + (String) escoamento.Produto__c;
+            if(keyToNotaItemMap.containsKey(escoamentoKey)){
+                for(NotaFiscalItem__c nota : keyToNotaItemMap.get(escoamentoKey)){
+                    escoamento.PrecificacaoEscoamento__c += nota.ValorTotalItem__c;
+                }
+                // Verifies if PrecificacoEscoamento is greater than 0, if there are NotaFiscalItem__c records for that key and than calculates average
+                if(escoamento.PrecificacaoEscoamento__c > 0 && keyToNotaItemMap.get(escoamentoKey).size() > 0){
+                    escoamento.PrecificacaoEscoamento__c = escoamento.PrecificacaoEscoamento__c / keyToNotaItemMap.get(escoamentoKey).size(); 
+                }
+            }else{
+                escoamentoWithoutNotaItemMap.put(escoamento.Id, escoamento);
+            }
+        }
+
+        //If theres no NotaFiscalItem with same key, will query TabelaPreco__c object for PrecificacaoEscoamento__c value
+        if(escoamentoWithoutNotaItemMap.size() > 0 ){
+            List<Id> acctList = Collection.of(escoamentoWithoutNotaItemMap.values()).pluckIds(Escoamento__c.NomeCliente__c);
+            List<Id> terrList = Collection.of(escoamentoWithoutNotaItemMap.values()).pluckIds(Escoamento__c.Territorio__c);
+            List<Id> prodList = Collection.of(escoamentoWithoutNotaItemMap.values()).pluckIds(Escoamento__c.Produto__c);
+            List<TabelaPreco__c> tabelaPrecoList = new List<TabelaPreco__c>([   SELECT Id, 
+                                                                                    Cliente__c
+                                                                                FROM TabelaPreco__c
+                                                                                WHERE Cliente__c IN :acctList]);
+
+        }
+
+
+    }
+*/
 }

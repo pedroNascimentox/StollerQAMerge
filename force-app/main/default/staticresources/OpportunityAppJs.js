@@ -757,7 +757,7 @@
                         }                        
                     }
                     if (item.type == 'Vendor' || item.type == 'V') {
-                        if (scope.cart.header.selectedAccount.paymentRating != 'A') {
+                        if (scope.cart.header.selectedAccount.paymentRating != 'A' && scope.cart.header.selectedAccount.paymentRating != 'B' && scope.cart.header.selectedAccount.paymentRating != 'C' ) {
                             show = false;
                         }
                     } else if (item.type == 'Crédito de ICMS' || item.type == 'CI') {

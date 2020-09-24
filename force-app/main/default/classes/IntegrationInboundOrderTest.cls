@@ -230,7 +230,7 @@ public with sharing class IntegrationInboundOrderTest {
 
         // List<Order> orderList = [SELECT Id FROM Order LIMIT 10];
 
-        System.assertEquals(2, [SELECT COUNT() FROM ProgramacaoEntrega__c LIMIT 10]);
+        System.assertEquals(1, [SELECT COUNT() FROM ProgramacaoEntrega__c LIMIT 10]);
         // System.assertEquals(2, orderList.size());
 
     }

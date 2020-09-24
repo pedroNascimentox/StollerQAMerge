@@ -1,11 +1,10 @@
 @page{
   size: A4 landscape;
-  margin: 0.5cm;
-  margin-top: 4cm;
-  margin-bottom: 0.4cm;
-
-  @top-center {
-    content: element(header);
+  margin: 0.5cm; 
+  @bottom-center {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    font-size: 14px;
+    content: "Página " counter(page) " de " counter(pages);
   }
 }
 
@@ -105,6 +104,13 @@ tr {
   align-content: center;
 }
 
+.witness-div {
+  border-top: 1px solid white;
+  width: 70%;
+  text-align: center;
+  margin: 0 auto;
+}
+
 #conditions {
   margin-top: 10px;
 }
@@ -163,8 +169,16 @@ tr {
   word-break: break-all !important;
 }
 
-div.header {
-  padding: 50px;
-  position: running(header);
+.ds_anchor_white {
+  color: white;
+  text-align: left;
+  vertical-align: middle;
+  padding-left: 33%;
 }
 
+.ds_anchor_white_witness {
+  color: white;
+  text-align: left;
+  vertical-align: bottom;
+  padding-left: 15%;
+}

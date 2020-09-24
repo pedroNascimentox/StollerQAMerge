@@ -159,7 +159,7 @@ public class OpportunityAppDataTest {
          FROM OpportunityLineItem WHERE id  = :opportunityLineItem.Id]);
 
         TerritoryData territoryData = new TerritoryData([
-            SELECT  regional__c, id, name, rtv__c, rtv__r.name,
+            SELECT  regional__c, regional__r.ACS__c, id, name, rtv__c, rtv__r.name,
                     nomeTerritorio__c, gerente__c, gerente__r.name,
                     diretor__c, diretor__r.name, diretor__r.managerId,
                     diretor__r.manager.name

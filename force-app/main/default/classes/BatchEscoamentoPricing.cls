@@ -71,9 +71,9 @@ public class BatchEscoamentoPricing implements Database.Batchable<SObject>, Sche
 
     }
 
-    // public static Id setSchedule() {
+    public static Id setSchedule() {
 
-    //     return System.schedule('Update Escoamento Pricing', '0 0 0 * * ? *', new BatchEscoamentoPricing());
+        return System.schedule('Update Escoamento Pricing', '0 0 0 * * ? *', new BatchEscoamentoPricing());
 
-    // }
+    }
 }

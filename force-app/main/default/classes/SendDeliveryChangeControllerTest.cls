@@ -201,6 +201,7 @@ public with sharing class SendDeliveryChangeControllerTest {
                     Name, 
                     NomeTerritorio__c, 
                     Regional__c,
+                    Regional__r.ACS__c,
                     Rtv__c, 
                     Rtv__r.Name, 
                     Gerente__c, 

@@ -187,7 +187,8 @@ public with sharing class NotaFiscalItemHelperTest {
                 Oportunidade__c     = opportunity.Id,
                 Regional__c         = regional.Id,
                 Territorio__c       = territorio.Id,
-                VendedorRTV__c      = user.Id
+                VendedorRTV__c      = user.Id,
+                TerritorioGerencial__c = territorio.Id
             )
         );
         insert notaFiscal1;
@@ -201,7 +202,8 @@ public with sharing class NotaFiscalItemHelperTest {
                 Regional__c         = regional.Id,
                 Territorio__c       = territorio.Id,
                 VendedorRTV__c      = user.Id,
-                DataNF__c           = Date.today().addMonths(1)
+                DataNF__c           = Date.today().addMonths(1),
+                TerritorioGerencial__c = territorio.Id
             )
         );
         insert notaFiscal2;
@@ -411,7 +413,9 @@ public with sharing class NotaFiscalItemHelperTest {
                 Oportunidade__c     = opportunity.Id,
                 Regional__c         = regional.Id,
                 Territorio__c       = territorio.Id,
-                VendedorRTV__c      = user.Id
+                VendedorRTV__c      = user.Id,
+                TerritorioGerencial__c = territorio.Id,
+                TipoFat__c = 'ZCPR'
             )
         );
         insert notaFiscal1;
@@ -490,6 +494,12 @@ Test.StopTest();
             )
         );
         insert notaFiscalItem2;
+
+        NotaFiscalItem__c notaItem = [SELECT Id, NotaFiscal__r.TipoFat__c FROM NotaFiscalItem__c WHERE Id =: notaFiscalItem2.Id];
+
+        notaItem.NotaFiscal__r.TipoFat__c = 'ZBON';
+        update notaFiscalItem2;
+
         delete notaFiscalItem2;
     }
 }
